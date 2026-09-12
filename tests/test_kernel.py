@@ -510,18 +510,33 @@ class ResourceTests(unittest.TestCase):
     def test_windows_job_close_terminates(self):
         command = [sys.executable, "-I", "-S", "-B", str(ROOT / "tests/limit_probe.py"), "sleep", str(os.getpid())]
         process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        job = WindowsJob(128, 1)
+        job, reader, banner = None, None, []
         try:
+            job = WindowsJob(128, 1)
             job.assign(process)
             process.stdin.write(b"G")
             process.stdin.flush()
+            reader = threading.Thread(target=lambda: banner.append(process.stdout.readline()), daemon=True)
+            reader.start()
+            reader.join(5)
+            self.assertFalse(reader.is_alive(), "worker readiness timed out")
+            self.assertEqual([line.strip() for line in banner], [b"ready"])
+            self.assertIsNone(process.poll(), "worker ended before the containment check")
+            # Windows kill-on-close can report exit 0. Verify that a known-live
+            # 30-second task stops within 3 seconds without reaching completion.
             job.close()
-            self.assertNotEqual(process.wait(timeout=3), 0)
+            process.wait(timeout=3)
+            stdout, stderr = process.communicate(timeout=3)
+            self.assertNotIn(b"completed", stdout)
+            self.assertEqual(stderr, b"")
         finally:
-            job.close()
+            if job is not None:
+                job.close()
             if process.poll() is None:
                 process.kill()
-            process.communicate()
+            if reader is not None:
+                reader.join(3)
+            process.communicate(timeout=3)
 
 
 if __name__ == "__main__":

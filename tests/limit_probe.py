@@ -26,5 +26,6 @@ if mode == "cpu":
 if mode == "sleep":
     print("ready", flush=True)
     time.sleep(30)
+    print("completed", flush=True)
     raise SystemExit(0)
 raise SystemExit(64)
