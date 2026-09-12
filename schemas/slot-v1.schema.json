@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Trusted launcher slot v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "slot", "generation", "state", "task_id", "label"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "slot": {"type": "integer", "minimum": 1, "maximum": 4},
+    "generation": {"type": "integer", "minimum": 1},
+    "state": {"enum": ["idle", "armed"]},
+    "task_id": {"type": "string", "minLength": 1, "maxLength": 120},
+    "label": {"type": "string", "minLength": 1, "maxLength": 160},
+    "runner_type": {"enum": ["noop_v1", "omp_blind_review_v1"]},
+    "run_policy": {"enum": ["once", "rerunnable"]},
+    "model": {"type": "string", "maxLength": 160},
+    "timeout_seconds": {"type": "integer", "minimum": 30, "maximum": 3600},
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "remote_branch", "candidate_sha"],
+      "properties": {
+        "repository": {"const": "dashminimix"},
+        "remote_branch": {"type": "string", "minLength": 1, "maxLength": 160},
+        "candidate_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "base_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"}
+      }
+    },
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "ref", "path", "blob_sha"],
+      "properties": {
+        "repository": {"const": "intrallm"},
+        "ref": {"type": "string", "minLength": 1, "maxLength": 160},
+        "path": {"type": "string", "minLength": 1, "maxLength": 260},
+        "blob_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"}
+      }
+    },
+    "preflight": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ruff": {"type": "boolean"},
+        "pytest_paths": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {"type": "string", "minLength": 1, "maxLength": 220}
+        }
+      }
+    }
+  }
+}
