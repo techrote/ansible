@@ -1,15 +1,16 @@
 # techrote/ansible
 
-Private human-initiated execution plane for trusted local orchestration.
+Private human-initiated orchestration plane.
 
-This repository deliberately separates executable launcher/controller code from `techrote/intrallm`, which remains the agent-visible reference/data plane.
+This repository separates trusted human-facing orchestration from `techrote/intrallm`, which remains the agent-visible reference/data plane.
 
 ## Trust boundary
 
-- `ansible` may execute trusted local orchestration code.
-- `intrallm` may supply untrusted task/reference data only.
-- Nothing retrieved from `intrallm` is executed as code.
-- Remote slot assignments select only enumerated local runner types.
-- Arbitrary shell commands, script paths, hooks, executable payloads, and path traversal are rejected.
+- `ansible` owns trusted launcher/orchestrator code and runner selection.
+- `intrallm` supplies validated reference/task data only.
+- Slot assignments use `schemas/slot-v1.schema.json` and may select only runner types already installed in the trusted local checkout.
+- Updating task data and updating executable orchestration are separate operations.
 
-See `POLICY.md` for the security model and `orchestrator/README.md` for the TUI.
+## Current committed foundation
+
+The repository currently contains the trust policy, text-normalization rules, local-state ignore rules and strict slot schema. The executable launcher/orchestrator layer is not yet committed.
