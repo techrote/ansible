@@ -36,8 +36,9 @@ Windows code assigns the child to a Job Object before releasing stdin. Limits
 include committed memory, user CPU time, one active process, and kill-on-close.
 No breakaway is enabled. Failure to set/assign limits fails closed. The bootstrap
 interpreter runs trusted code before assignment; no untrusted request is delivered
-until assignment. Windows code and wrappers require host qualification; the
-committed local report establishes Linux behavior only.
+until assignment. Hosted Windows CI has exercised the code and PowerShell
+wrapper (see `docs/CI-QUALIFICATION.md`). The committed local container report
+establishes Linux behavior only; deployment-host qualification is still required.
 
 CPU/memory caps apply to the child, not the controller or aggregate machine.
 The controller enforces wall time and drains stdout/stderr with 32 KiB caps each;

@@ -1,6 +1,6 @@
 # Implementation evidence: 0.1.0 trusted-noop-only
 
-Date: 2026-09-12. Remote starting commit:
+Date: 2026-09-12 (UTC). Remote starting commit:
 `9f27ca4f4c9317ed8246851f2961adc8bdb2de74`.
 Implementation branch: `impl/01-trusted-kernel-contract-v1`.
 
@@ -12,12 +12,17 @@ Host: Linux, Python 3.13.5. Standard-library runtime and unittest suite.
 |---|---|
 | `python -B -m unittest discover -s tests -v` | 78 tests run: 77 passed, 1 skipped; no failures/errors |
 | `python -I -S -B run_kernel.py qualify` | All 35 checks passed |
-| Windows Job Object kill-on-close test | Skipped: no Windows host in this session |
-| Windows PowerShell 5.1 wrappers / CI matrix | Added, not locally executed |
+| Windows Job Object kill-on-close test | Skipped locally; passed in hosted Windows CI after correcting the exit-code assertion |
+| Windows PowerShell 5.1 wrappers / CI matrix | Passed on hosted Windows CI; not executed in this Linux container |
 | Live OMP/Ohmy adapter | Not implemented or qualified; runner refused |
 
-The full local unittest output is in `evidence/unittest-linux.txt` and the
+The initial local unittest output is in `evidence/unittest-linux.txt` and the
 machine-readable profile is in `evidence/qualification-linux.json`.
+The corrected tests were rerun locally: 78 run, 77 passed, one platform skip.
+The exported patch was also applied to the exact original baseline and tested:
+its Git tree matched the published code tree and the same 78-test suite passed.
+Hosted results and the initial Windows test correction are recorded separately
+in [CI qualification](CI-QUALIFICATION.md).
 The report pins source fingerprint
 `4bc956a8dcd696732d224d722ff9a1578f167c3d7294a9cf53d4e7e36b5b9c01`.
 That fingerprint covers kernel Python code, wire schemas and the trusted entry
@@ -51,7 +56,7 @@ flags. Test-only probes are never registered production runners.
 `trusted-noop-only` profile. `real_agent_qualified: false` is intentional.
 No claim is made for hostile worker filesystem/network isolation, general child
 process trees, provider-specific protocol parsing, Git review/worktree safety,
-VM providers, remote slot fetch or Windows host qualification.
+VM providers, remote slot fetch or qualification on the user's Windows machine.
 
 The implementation has not been subjected to an independent security review,
 hardware power-loss qualification, or deployment on the user's Windows machine.
@@ -62,8 +67,9 @@ open. Issue #1 must remain open until its retained acceptance gates are met.
 
 Use a clean reviewed checkout and an external private local state directory.
 Run the two commands above. The CI definition repeats them on Windows/Linux and
-Python 3.12/3.13 and smoke-tests the Windows PowerShell wrapper. CI results must
-be read from the PR; the workflow's presence is not evidence that it passed.
+Python 3.12/3.13 and smoke-tests the Windows PowerShell wrapper. The observed
+passing matrix is linked in `docs/CI-QUALIFICATION.md`; later revisions must
+re-run it rather than borrowing an older commit's qualification.
 
 Review `docs/RECONCILIATION.md` for scope changes and unavailable work.
 The implementation is proposed on a separate branch; there is no direct main

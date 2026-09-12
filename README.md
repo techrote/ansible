@@ -27,8 +27,10 @@ py -3 -I -S -B run_kernel.py qualify
 py -3 -I -S -B run_kernel.py status
 ```
 
-The wrappers and Job Object implementation are included but require Windows
-qualification; the committed local execution evidence was produced on Linux.
+The hosted Windows/Linux CI matrix has passed the tests and qualification;
+Windows jobs also passed the PowerShell 5.1 launcher smoke test. See
+[the CI evidence](docs/CI-QUALIFICATION.md). Qualification on your own machine
+is still required before integration. The local container report was produced on Linux.
 
 ## Other commands
 

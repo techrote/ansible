@@ -1,0 +1,55 @@
+{
+  "evidence_version": "ansible.ci-evidence.v1",
+  "observed_date_utc": "2026-09-12",
+  "repository": "techrote/ansible",
+  "workflow_run_id": 34724665447,
+  "workflow_url": "https://github.com/techrote/ansible/actions/runs/34724665447",
+  "tested_commit": "7915ad647cae922e8b8618dc3f32ac73e2f79168",
+  "tested_tree": "e1ac513d2fbf778b3e046dc8c072b90b67596d40",
+  "contract_version": "ansible.execution.v1",
+  "source_fingerprint": "4bc956a8dcd696732d224d722ff9a1578f167c3d7294a9cf53d4e7e36b5b9c01",
+  "profile": "trusted-noop-only",
+  "real_agent_qualified": false,
+  "jobs": [
+    {
+      "job_id": 103636591441,
+      "host": "ubuntu-latest",
+      "python_matrix": "3.12",
+      "status": "completed",
+      "conclusion": "success",
+      "tests": "success",
+      "qualification": "success",
+      "powershell_51_smoke": "not_applicable"
+    },
+    {
+      "job_id": 103636591366,
+      "host": "ubuntu-latest",
+      "python_matrix": "3.13",
+      "status": "completed",
+      "conclusion": "success",
+      "tests": "success",
+      "qualification": "success",
+      "powershell_51_smoke": "not_applicable"
+    },
+    {
+      "job_id": 103636591438,
+      "host": "windows-latest",
+      "python_matrix": "3.12",
+      "status": "completed",
+      "conclusion": "success",
+      "tests": "success",
+      "qualification": "success",
+      "powershell_51_smoke": "success"
+    },
+    {
+      "job_id": 103636591481,
+      "host": "windows-latest",
+      "python_matrix": "3.13",
+      "status": "completed",
+      "conclusion": "success",
+      "tests": "success",
+      "qualification": "success",
+      "powershell_51_smoke": "success"
+    }
+  ]
+}
