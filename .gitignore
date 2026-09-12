@@ -2,3 +2,7 @@ config/local.json
 *.local.json
 __pycache__/
 .venv/
+.pytest_cache/
+.coverage
+htmlcov/
+qualification.local.json

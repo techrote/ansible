@@ -1,0 +1,330 @@
+{
+  "contract_version": "ansible.worker.v1",
+  "provenance": "Synthetic generic fixtures derived from the supplied kickoff. This is not a live Ohmy/OMP capture. Raw provider parsing belongs to Ohmy.",
+  "historical_observation": {
+    "controller_exit": 0,
+    "agent_end_seen": true,
+    "stopReason": "error",
+    "provider_status": 429,
+    "retry_exhausted": true,
+    "worker_result": null
+  },
+  "cases": [
+    {
+      "name": "genuine_success",
+      "worker": {
+        "contract_version": "ansible.worker.v1",
+        "job_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "outcome": "success",
+        "transport": "ready",
+        "final_output": "A valid analytical result.",
+        "error_class": "none",
+        "retry_exhausted": false,
+        "tool_calls": 0,
+        "implementation_activity": false
+      },
+      "expected": "success"
+    },
+    {
+      "name": "provider_429_after_clean_controller",
+      "worker": {
+        "contract_version": "ansible.worker.v1",
+        "job_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "outcome": "provider_error",
+        "transport": "ready",
+        "final_output": null,
+        "error_class": "provider",
+        "retry_exhausted": true,
+        "tool_calls": 0,
+        "implementation_activity": false
+      },
+      "expected": "provider_error"
+    },
+    {
+      "name": "retry_exhaustion",
+      "worker": {
+        "contract_version": "ansible.worker.v1",
+        "job_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "outcome": "success",
+        "transport": "ready",
+        "final_output": "A valid analytical result.",
+        "error_class": "none",
+        "retry_exhausted": true,
+        "tool_calls": 0,
+        "implementation_activity": false
+      },
+      "expected": "provider_error"
+    },
+    {
+      "name": "zero_output_exit_zero",
+      "worker": {
+        "contract_version": "ansible.worker.v1",
+        "job_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "outcome": "success",
+        "transport": "ready",
+        "final_output": null,
+        "error_class": "none",
+        "retry_exhausted": false,
+        "tool_calls": 0,
+        "implementation_activity": false
+      },
+      "expected": "no_result"
+    },
+    {
+      "name": "whitespace_output",
+      "worker": {
+        "contract_version": "ansible.worker.v1",
+        "job_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "outcome": "success",
+        "transport": "ready",
+        "final_output": "  ",
+        "error_class": "none",
+        "retry_exhausted": false,
+        "tool_calls": 0,
+        "implementation_activity": false
+      },
+      "expected": "no_result"
+    },
+    {
+      "name": "zero_tool_analytical_success",
+      "worker": {
+        "contract_version": "ansible.worker.v1",
+        "job_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "outcome": "success",
+        "transport": "ready",
+        "final_output": "A valid analytical result.",
+        "error_class": "none",
+        "retry_exhausted": false,
+        "tool_calls": 0,
+        "implementation_activity": false
+      },
+      "expected": "success"
+    },
+    {
+      "name": "empty_implementation_activity",
+      "worker": {
+        "contract_version": "ansible.worker.v1",
+        "job_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "outcome": "success",
+        "transport": "ready",
+        "final_output": "A valid analytical result.",
+        "error_class": "none",
+        "retry_exhausted": false,
+        "tool_calls": 0,
+        "implementation_activity": false
+      },
+      "implementation": true,
+      "expected": "invalid_result"
+    },
+    {
+      "name": "implementation_with_activity",
+      "worker": {
+        "contract_version": "ansible.worker.v1",
+        "job_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "outcome": "success",
+        "transport": "ready",
+        "final_output": "A valid analytical result.",
+        "error_class": "none",
+        "retry_exhausted": false,
+        "tool_calls": 1,
+        "implementation_activity": true
+      },
+      "implementation": true,
+      "expected": "success"
+    },
+    {
+      "name": "worker_cannot_assert_containment",
+      "worker": {
+        "contract_version": "ansible.worker.v1",
+        "job_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "outcome": "contained",
+        "transport": "ready",
+        "final_output": "A valid analytical result.",
+        "error_class": "none",
+        "retry_exhausted": false,
+        "tool_calls": 0,
+        "implementation_activity": false
+      },
+      "expected": "invalid_result"
+    },
+    {
+      "name": "worker_failure",
+      "worker": {
+        "contract_version": "ansible.worker.v1",
+        "job_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "outcome": "failed",
+        "transport": "ready",
+        "final_output": "A valid analytical result.",
+        "error_class": "none",
+        "retry_exhausted": false,
+        "tool_calls": 0,
+        "implementation_activity": false
+      },
+      "expected": "failed"
+    },
+    {
+      "name": "error_overrides_success_claim",
+      "worker": {
+        "contract_version": "ansible.worker.v1",
+        "job_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "outcome": "success",
+        "transport": "ready",
+        "final_output": "A valid analytical result.",
+        "error_class": "worker",
+        "retry_exhausted": false,
+        "tool_calls": 0,
+        "implementation_activity": false
+      },
+      "expected": "worker_error"
+    },
+    {
+      "name": "protocol_failure",
+      "worker": {
+        "contract_version": "ansible.worker.v1",
+        "job_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "outcome": "success",
+        "transport": "protocol_failed",
+        "final_output": "A valid analytical result.",
+        "error_class": "none",
+        "retry_exhausted": false,
+        "tool_calls": 0,
+        "implementation_activity": false
+      },
+      "expected": "invalid_result"
+    },
+    {
+      "name": "missing_evidence",
+      "worker": {
+        "contract_version": "ansible.worker.v1",
+        "job_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "outcome": "success",
+        "transport": "ready",
+        "final_output": "A valid analytical result.",
+        "error_class": "none",
+        "retry_exhausted": false,
+        "tool_calls": 0,
+        "implementation_activity": false
+      },
+      "evidence": "missing",
+      "expected": "invalid_result"
+    },
+    {
+      "name": "wrong_job",
+      "worker": {
+        "contract_version": "ansible.worker.v1",
+        "job_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "outcome": "success",
+        "transport": "ready",
+        "final_output": "A valid analytical result.",
+        "error_class": "none",
+        "retry_exhausted": false,
+        "tool_calls": 0,
+        "implementation_activity": false
+      },
+      "expected": "invalid_result"
+    },
+    {
+      "name": "wrong_worker_contract",
+      "worker": {
+        "contract_version": "ansible.worker.v99",
+        "job_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "outcome": "success",
+        "transport": "ready",
+        "final_output": "A valid analytical result.",
+        "error_class": "none",
+        "retry_exhausted": false,
+        "tool_calls": 0,
+        "implementation_activity": false
+      },
+      "expected": "invalid_result"
+    },
+    {
+      "name": "controller_failure",
+      "worker": {
+        "contract_version": "ansible.worker.v1",
+        "job_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "outcome": "success",
+        "transport": "ready",
+        "final_output": "A valid analytical result.",
+        "error_class": "none",
+        "retry_exhausted": false,
+        "tool_calls": 0,
+        "implementation_activity": false
+      },
+      "infra": {
+        "state": "controller_failed",
+        "exit_code": 1,
+        "controller_completed": false
+      },
+      "expected": "unknown"
+    },
+    {
+      "name": "nonzero_exit_cannot_succeed",
+      "worker": {
+        "contract_version": "ansible.worker.v1",
+        "job_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "outcome": "success",
+        "transport": "ready",
+        "final_output": "A valid analytical result.",
+        "error_class": "none",
+        "retry_exhausted": false,
+        "tool_calls": 0,
+        "implementation_activity": false
+      },
+      "infra": {
+        "state": "completed",
+        "exit_code": 1,
+        "controller_completed": true
+      },
+      "expected": "unknown"
+    },
+    {
+      "name": "cancel_overrides_success",
+      "worker": {
+        "contract_version": "ansible.worker.v1",
+        "job_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "outcome": "success",
+        "transport": "ready",
+        "final_output": "A valid analytical result.",
+        "error_class": "none",
+        "retry_exhausted": false,
+        "tool_calls": 0,
+        "implementation_activity": false
+      },
+      "stop": "cancelled",
+      "expected": "cancelled"
+    },
+    {
+      "name": "contain_overrides_success",
+      "worker": {
+        "contract_version": "ansible.worker.v1",
+        "job_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "outcome": "success",
+        "transport": "ready",
+        "final_output": "A valid analytical result.",
+        "error_class": "none",
+        "retry_exhausted": false,
+        "tool_calls": 0,
+        "implementation_activity": false
+      },
+      "stop": "contained",
+      "expected": "contained"
+    },
+    {
+      "name": "timeout_overrides_success",
+      "worker": {
+        "contract_version": "ansible.worker.v1",
+        "job_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "outcome": "success",
+        "transport": "ready",
+        "final_output": "A valid analytical result.",
+        "error_class": "none",
+        "retry_exhausted": false,
+        "tool_calls": 0,
+        "implementation_activity": false
+      },
+      "stop": "timeout",
+      "expected": "timeout"
+    }
+  ]
+}

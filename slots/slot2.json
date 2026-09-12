@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "slot": 2,
+  "generation": 1,
+  "state": "idle",
+  "task_id": "slot-2-bootstrap",
+  "label": "Idle"
+}

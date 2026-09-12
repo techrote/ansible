@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "worker-v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_version",
+    "job_id",
+    "outcome",
+    "transport",
+    "final_output",
+    "error_class",
+    "retry_exhausted",
+    "tool_calls",
+    "implementation_activity"
+  ],
+  "properties": {
+    "contract_version": {
+      "type": "string",
+      "const": "ansible.worker.v1"
+    },
+    "job_id": {
+      "type": "string",
+      "minLength": 32,
+      "maxLength": 32,
+      "pattern": "^[0-9a-f]{32}$"
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "unknown",
+        "success",
+        "failed",
+        "cancelled",
+        "timeout",
+        "provider_error",
+        "worker_error",
+        "no_result",
+        "invalid_result"
+      ]
+    },
+    "transport": {
+      "type": "string",
+      "enum": [
+        "not_applicable",
+        "ready",
+        "protocol_failed",
+        "connection_failed",
+        "retry_exhausted"
+      ]
+    },
+    "final_output": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 8192
+    },
+    "error_class": {
+      "type": "string",
+      "enum": [
+        "none",
+        "provider",
+        "worker"
+      ]
+    },
+    "retry_exhausted": {
+      "type": "boolean"
+    },
+    "tool_calls": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1000000
+    },
+    "implementation_activity": {
+      "type": "boolean"
+    }
+  }
+}

@@ -1,11 +1,30 @@
-# Control-plane policy
+# Trusted execution policy
 
-`techrote/ansible` is reserved for the human-initiated execution plane.
+`techrote/ansible` contains trusted executable code beneath Omnipanel.
+`techrote/intrallm`, model output, repository contents and task assignments are
+inert data. They cannot register runners, supply commands/modules/hooks,
+select executables, alter an environment, or update the trusted checkout.
 
-`techrote/intrallm` remains the agent-visible reference and task-data plane. Information may flow from `intrallm` into trusted orchestration as validated data, but runner selection and executable orchestration belong here.
+Trusted-code updates are explicit operator actions, separate from slot-data
+refreshes. Ansible does not fetch or execute code from `intrallm` in this release.
+Request validation must include the published schema **and** runtime registry,
+capability, resource, generation and path checks.
 
-Remote task slots must use a strict schema, fixed repository identifiers, pinned Git object IDs, bounded timeouts and an enumerated local runner registry. A slot must not be able to introduce a new runner implementation implicitly.
+Ansible does not depend on Omnipanel. It does not schedule DAGs, Race/Diversity,
+rank models, adjudicate candidates, or provide the full orchestration TUI.
+Provider-specific parsing belongs to Ohmy. Generic worker outcome assertions
+are insufficient without the registered runner's trusted success predicate and
+host-observed infrastructure/evidence checks.
 
-The local trusted checkout must not silently replace its own orchestration code when refreshing task data. Updating executable orchestration is a separate, explicit human action.
+Only `noop_v1` is enabled. Its provider is trusted-code-only, not an untrusted
+execution sandbox. No network, credential, repository test/build, publication,
+VM, arbitrary-path export or live model capability is granted. Adding any of
+these requires a trusted implementation change and its own qualification gate.
 
-The initial `schemas/slot-v1.schema.json` records the data boundary. Executable runner/orchestrator files are intentionally separate from that schema.
+An operator control receipt is not task success or proof of containment.
+Controller exit 0, agent-end markers and clean transport must never establish
+semantic success on their own. Corrupt or interrupted state fails closed.
+
+Keep runtime state outside source checkouts. Keep secrets out of requests and
+logs. The host user, installed interpreter, checkout, state directory and OS
+are trusted; this implementation does not defend against their compromise.

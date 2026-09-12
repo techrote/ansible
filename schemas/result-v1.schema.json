@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "result-v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_version",
+    "implementation_version",
+    "job_id",
+    "admission",
+    "infrastructure",
+    "transport",
+    "worker_outcome",
+    "evidence",
+    "reason"
+  ],
+  "properties": {
+    "contract_version": {
+      "type": "string",
+      "const": "ansible.execution.v1"
+    },
+    "implementation_version": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 40
+    },
+    "job_id": {
+      "type": "string",
+      "minLength": 32,
+      "maxLength": 32,
+      "pattern": "^[0-9a-f]{32}$"
+    },
+    "admission": {
+      "type": "string",
+      "enum": [
+        "admitted",
+        "rejected_schema",
+        "rejected_policy",
+        "rejected_runner",
+        "rejected_capability"
+      ]
+    },
+    "infrastructure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "exit_code",
+        "controller_completed"
+      ],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "not_started",
+            "starting",
+            "running",
+            "completed",
+            "controller_failed",
+            "environment_failed",
+            "terminated",
+            "unknown"
+          ]
+        },
+        "exit_code": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "controller_completed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "transport": {
+      "type": "string",
+      "enum": [
+        "not_applicable",
+        "ready",
+        "protocol_failed",
+        "connection_failed",
+        "retry_exhausted"
+      ]
+    },
+    "worker_outcome": {
+      "type": "string",
+      "enum": [
+        "unknown",
+        "success",
+        "failed",
+        "cancelled",
+        "timeout",
+        "provider_error",
+        "worker_error",
+        "no_result",
+        "invalid_result",
+        "contained"
+      ]
+    },
+    "evidence": {
+      "type": "string",
+      "enum": [
+        "complete",
+        "partial",
+        "missing",
+        "invalid"
+      ]
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80,
+      "pattern": "^[A-Z0-9_]+$"
+    }
+  }
+}
