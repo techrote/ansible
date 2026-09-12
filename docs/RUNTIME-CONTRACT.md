@@ -36,6 +36,21 @@ memory is 64-256 MiB and CPU time 1-2 seconds. The outer schema's wider maxima d
 not grant a larger registry envelope. `ansible.runner.noop.v1` names its predicate.
 No environment, executable, module, shell, worktree or output path is a request field.
 
+## Trusted local configuration
+
+`config/local.json` is optional, ignored by Git, and belongs to the trusted operator
+plane. It is not part of the execution request contract. Version 0.1.1 accepts only
+fixed repository identifiers `intrallm` and `dashminimix`, optional safe slot/model
+metadata, and an optional absolute local-state path. Unknown/duplicate keys and
+invalid types fail closed. Explicit repository paths must be absolute existing Git
+checkouts; otherwise only same-parent sibling directories with those fixed names
+are discoverable. Symlink/reparse redirection is refused. A configured state root
+may not sit inside the trusted checkout or a resolved known repository.
+
+These settings do not grant execution authority. In particular, approved model
+names cannot enable the disabled OMP runner, and repository resolution never
+selects a script, command, hook, or arbitrary repository identifier from task data.
+
 ## Five separate outcome axes
 
 | Axis | Purpose |
@@ -125,6 +140,6 @@ Other commands' exit 0 only means that command completed (e.g. a control receipt
 Always interpret the typed response, not an exit code from an unrelated command.
 
 Qualification is host- and source-specific. `profile_qualified` applies only to
-`trusted-noop-only`; `real_agent_qualified` is always false in 0.1.0. Omnipanel must
+`trusted-noop-only`; `real_agent_qualified` is always false in 0.1.1. Omnipanel must
 pin this contract plus the intended qualified runner/provider profile and must
 not treat noop qualification as permission to execute real model work.

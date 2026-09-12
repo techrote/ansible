@@ -1,65 +1,93 @@
 # Issue #1 and candidate reconciliation
 
-## Observed baseline
+## Baseline and candidates inspected
 
-Repository inspected: `techrote/ansible`, private. Initial inspection found only
-`main` at `9f27ca4f4c9317ed8246851f2961adc8bdb2de74`, no published PRs and no
-published implementation branches. Issue #1 was open with no comments. Its title
-was “Implement trusted launcher slots and integrated orchestrator panel.”
-The complete baseline comprised README, POLICY, .gitattributes, .gitignore and
-`schemas/slot-v1.schema.json`; there was no published executable candidate.
-All five fetched baseline files were verified against their Git blob IDs locally.
+Repository: `techrote/ansible`. The original published baseline was `main` at
+`9f27ca4f4c9317ed8246851f2961adc8bdb2de74`, containing policy/docs, normalization
+rules, local ignores and `schemas/slot-v1.schema.json`. Draft PR #2 introduced the
+versioned trusted execution kernel on `impl/01-trusted-kernel-contract-v1`.
 
-Earlier context identifies an unpushed Big Pickle worktree on the user's Windows
-machine, `ansible-i01p`, branch `impl/01-trusted-orchestrator-pickle`. That worktree
-is not mounted or remotely published here. Library searches found no retrievable
-copy. **Its code was not inspected, replaced, deleted, or judged correct/incorrect.**
-Reconcile it file-by-file before integrating this branch into that local worktree.
-No claim is made that useful unpublished work was salvaged.
+The previously unpublished Big Pickle worktree has now been supplied as
+`ansible-i01p.zip`. Its `.git` worktree pointer names `ansible-i01p`, matching the
+previously identified local candidate. The archive was inspected as source/evidence
+only and was not reset, modified, or treated as trusted executable code. Its archive hash/count and local verification are in
+`evidence/reconciliation-v011.json`, and the detailed A-E assessment is in
+`docs/BIG-PICKLE-AUDIT.md`.
 
-## A-E disposition of available material
+## Reconciliation result
+
+The current Python kernel remains the authoritative implementation. Big Pickle has
+useful pieces, but merging it wholesale would regress the most important trust and
+runtime-result properties added by the kickoff:
+
+- its `omp_blind_review_v1` does not invoke OMP/model/Ohmy at all;
+- it can run candidate-controlled pytest code without a qualified sandbox;
+- its process helper lacks hard RAM/CPU limits, preserves most inherited
+  environment variables and accumulates child output without a bound;
+- ruff/pytest failures can be recorded without necessarily making the runner fail;
+- it has no five-axis normalized worker/result contract capable of representing
+  the historical provider-429/no-result false-success case;
+- once-only completion is recorded after success rather than reserved before
+  launch, and slot refresh does not enforce monotonic immutable generations;
+- its PID-file lock and plain JSONL status are weaker than the current OS locks,
+  hash-chained/fsynced journals and fail-closed replay.
+
+Consequently `omp_blind_review_v1` remains registered but disabled with
+`RUNNER_NOT_QUALIFIED`; `real_agent_qualified=false` remains mandatory.
+
+## A-E disposition summary
 
 | Material | Disposition | Action |
 |---|---|---|
-| Existing trust/data-plane policy | A, with boundary clarification | Preserve data/code separation; rename overarching orchestration responsibility to Omnipanel |
-| Text normalization and local ignores | A | Preserve; extend ignores for local test/cache outputs |
-| Legacy slot schema | B | Preserve exact schema; add stricter runtime cross-field, generation, path and registry checks |
-| Issue #1 richer orchestrator ambitions | C | Full scheduling/model/project TUI belongs in Omnipanel; implement only local slots/status/control |
-| Historical executable prototype in intrallm | D as architectural role, not a code audit | Do not execute, delete or edit it in this run |
-| Task-supplied shell/script/runner authority | E | Refuse at every request boundary |
-| Unpublished Big Pickle implementation | Uninspected, not A-E classified | Requires access before correctness or salvage claims |
+| Trust/data-plane separation | A | Preserve and strengthen |
+| Stable launcher-slot concept | A | Retain current smaller wrappers |
+| Fixed local runner registry | A | Retain current immutable registry |
+| Big Pickle `config/local.json` + fixed sibling repo discovery | A/B | Reimplemented and qualified in v0.1.1 |
+| Slot/path/SHA validation ideas | A/B | Preserve rules; current parser/runtime checks remain authoritative |
+| Append-only status concept | A/B | Preserve; current hash-chained/fsynced/locked journal supersedes implementation |
+| Git snapshots and disposable-worktree ownership marker | B | Keep as future runner design input; harden hooks/isolation/provenance before activation |
+| Richer integrated orchestrator presentation | C | Keep as reference; broader orchestration UI belongs in Omnipanel |
+| Stale README/POLICY and duplicated PowerShell prototype plumbing | D | Superseded |
+| Big Pickle `omp_blind_review_v1` as an OMP runner | E | Do not enable or merge as-is |
+| Unsandboxed candidate pytest execution | E | Excluded until a qualified execution provider exists |
+| Task-supplied shell/script/runner authority | E | Continue to refuse at every boundary |
 
-The user's “Trusted Execution Kernel Implementation Kickoff” supersedes the
-older richer-panel wording for this run. This branch is an isolated implementation
-candidate, not an update of `main`, and does not close Issue #1.
+## Salvage performed
+
+Version 0.1.1 adds `ansible_kernel/config.py`, `schemas/config-v1.schema.json` and
+`config.example.json`, based on the useful Big Pickle configuration concept but
+implemented against the current trust model. It supports only the fixed repository
+IDs `intrallm` and `dashminimix`, operator-supplied absolute paths or fixed sibling
+discovery, strict config validation, symlink/reparse refusal and configured-state
+isolation. Configuration does not enable a runner or grant executable authority.
+
+The cross-platform test suite now covers safe config defaults, fixed repository
+discovery and state-root isolation; the 35-check execution qualification remains
+focused on execution-contract semantics. The Git snapshot/worktree/reference helpers were not
+copied in this change because their security prerequisites are not yet met.
 
 ## Delivered versus remaining acceptance
 
-Implemented: immutable registry; strict runtime request validation; fixed noop;
-versioned five-axis results; generic success predicates and false-success fixtures;
-durable job states; at-most-once reservations; append-only status/ledger; evidence
-manifests; controls; resource-limited local provider; minimal CLI/panel; four stable
-launchers; local data-only refresh; qualification and cross-platform CI definition.
+Delivered/qualified for the trusted-noop profile: immutable registry; bounded
+strict request validation; fixed noop; versioned five-axis results; generic success
+predicates and false-success fixtures; durable explicit job states; at-most-once
+reservations; append-only/hash-chained status and ledger; evidence manifests;
+cancellation/containment; resource-limited fixed provider; minimal local panel;
+four stable launchers; operator-local fixed repository resolution; qualification
+and Windows/Linux CI.
 
-Not delivered/qualified: live Ohmy/OMP execution; hostile code isolation; network
-and filesystem enforcement for general workers; pinned repository/reference
-fetch and review worktrees; exact Git post-run review invariants; VM providers;
-credential-bearing runners; remote slot transport; arbitrary Git candidate export;
-repository auto-discovery/config/local.json functionality; Windows execution
-qualification on the user's machine; unpublished candidate reconciliation.
-The historical `Invoke-TaskSlot.ps1` filename is replaced in this candidate by the
-shared fixed `launchers/Invoke-Kernel.ps1` wrapper, not by a script path in data.
+Still unavailable or unqualified: live Ohmy/OMP execution; hostile-code
+filesystem/network isolation; credential-bearing runners; arbitrary repository
+build/test execution; hardened pinned review worktrees; ref+path-to-blob provenance;
+VM providers; remote slot/reference transport; general candidate snapshot export;
+and qualification on the user's own Windows installation.
 
-Retiring executables on another repository was deliberately not performed: their
-actual state and consumers have not been audited. Existing experimental OMP work
-and other project branches remain untouched.
+## Integration sequence
 
-## Integration sequence and issue ownership
-
-Keep Issue #1 open as the execution-substrate acceptance target. Review this PR
-as the noop-only foundation, qualify on Windows, then reconcile the unpublished
-candidate without a blind reset. Ohmy may implement normalized fixtures in parallel;
-Omnipanel may target the published contract and refused-capability behavior.
-Enabling a real agent must be serialized after a qualified isolation/provider
-boundary and adapter-specific success/evidence tests. Do not loosen the registry
-or treat a passing noop profile as permission to bypass those gates.
+Keep Issue #1 open as the execution-substrate acceptance target and PR #2 as a
+draft while real-agent isolation/provider gates remain open. Omnipanel may target
+the published contract and refused-capability behavior now. Ohmy may implement the
+normalized OMP/provider adapter in parallel. Enabling a real runner must remain
+serialized behind enforced isolation and adapter-specific outcome/evidence tests.
+Do not reinterpret Big Pickle's deterministic review record as evidence that OMP
+performed a review.

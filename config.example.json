@@ -1,0 +1,10 @@
+{
+  "$comment": "Copy to config/local.json. All keys are optional; only intrallm and dashminimix repository identifiers are accepted.",
+  "repositories": {
+    "intrallm": "C:/code/intrallm",
+    "dashminimix": "C:/code/dashminimix"
+  },
+  "slots_dir": "slots",
+  "approved_models": ["none"],
+  "local_state_dir": "C:/Users/you/AppData/Local/techrote-ansible"
+}

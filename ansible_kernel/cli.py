@@ -11,6 +11,7 @@ import time
 
 from . import CONTRACT, VERSION
 from .contract import MAX_BYTES, REGISTRY, Refusal, canonical
+from .config import ConfigError, assert_state_root_isolated, load as load_config, resolve_repository, state_root as configured_state_root
 from .kernel import Kernel, ROOT, fingerprint
 from .state import Store, StateError, TERMINAL, read_bytes
 
@@ -79,9 +80,12 @@ def main(argv=None) -> int:
     commands.add_parser("contract")
     commands.add_parser("qualify")
     commands.add_parser("status")
+    commands.add_parser("config")
     commands.add_parser("panel")
     commands.add_parser("recover")
     commands.add_parser("slots")
+    resolve = commands.add_parser("resolve-repo")
+    resolve.add_argument("name", choices=("intrallm", "dashminimix"))
     commands.add_parser("run").add_argument("request_file", help="JSON file or - for stdin")
     commands.add_parser("run-slot").add_argument("number", type=int, choices=range(1, 5))
     commands.add_parser("refresh").add_argument("directory", type=Path)
@@ -103,7 +107,27 @@ def main(argv=None) -> int:
             report = qualify()
             emit(report)
             return 0 if report["profile_qualified"] else 1
-        kernel = Kernel(Store(args.state_root))
+        local_config = load_config()
+        if args.command == "config":
+            repositories = {}
+            for name in ("intrallm", "dashminimix"):
+                resolved = resolve_repository(name, local_config)
+                repositories[name] = str(resolved) if resolved else None
+            local_state = configured_state_root(local_config)
+            emit({"config_version": "ansible.local-config.v1",
+                  "repositories": repositories,
+                  "slots_dir": local_config["slots_dir"],
+                  "approved_models": local_config["approved_models"],
+                  "local_state_dir": str(local_state) if local_state else None})
+            return 0
+        if args.command == "resolve-repo":
+            path = resolve_repository(args.name, local_config)
+            emit({"repository": args.name, "path": str(path) if path else None})
+            return 0 if path else 1
+        root = args.state_root or configured_state_root(local_config)
+        if root is not None:
+            assert_state_root_isolated(root, local_config)
+        kernel = Kernel(Store(root))
         if args.command == "panel":
             return panel(kernel)
         if args.command == "run":
@@ -149,6 +173,7 @@ def main(argv=None) -> int:
     except Refusal as exc:
         emit({"contract_version": CONTRACT, "error": exc.code, "admission": exc.admission})
         return 2
-    except (StateError, OSError) as exc:
-        emit({"contract_version": CONTRACT, "error": str(exc) if isinstance(exc, StateError) else "LOCAL_IO_FAILURE"})
+    except (StateError, ConfigError, OSError) as exc:
+        code = str(exc) if isinstance(exc, (StateError, ConfigError)) else "LOCAL_IO_FAILURE"
+        emit({"contract_version": CONTRACT, "error": code})
         return 3

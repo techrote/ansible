@@ -1,4 +1,4 @@
-# Implementation evidence: 0.1.0 trusted-noop-only
+# Implementation evidence: 0.1.1 trusted-noop-only
 
 Date: 2026-09-12 (UTC). Remote starting commit:
 `9f27ca4f4c9317ed8246851f2961adc8bdb2de74`.
@@ -10,21 +10,22 @@ Host: Linux, Python 3.13.5. Standard-library runtime and unittest suite.
 
 | Verification | Observed result |
 |---|---|
-| `python -B -m unittest discover -s tests -v` | 78 tests run: 77 passed, 1 skipped; no failures/errors |
+| `python -B -m unittest discover -s tests -v` | 87 tests run: 86 passed, 1 skipped; no failures/errors |
 | `python -I -S -B run_kernel.py qualify` | All 35 checks passed |
 | Windows Job Object kill-on-close test | Skipped locally; passed in hosted Windows CI after correcting the exit-code assertion |
 | Windows PowerShell 5.1 wrappers / CI matrix | Passed on hosted Windows CI; not executed in this Linux container |
 | Live OMP/Ohmy adapter | Not implemented or qualified; runner refused |
 
-The initial local unittest output is in `evidence/unittest-linux.txt` and the
-machine-readable profile is in `evidence/qualification-linux.json`.
-The corrected tests were rerun locally: 78 run, 77 passed, one platform skip.
-The exported patch was also applied to the exact original baseline and tested:
-its Git tree matched the published code tree and the same 78-test suite passed.
-Hosted results and the initial Windows test correction are recorded separately
-in [CI qualification](CI-QUALIFICATION.md).
+The v0.1.0 local unittest transcript remains in `evidence/unittest-linux.txt` and
+its machine-readable profile remains in `evidence/qualification-linux.json`.
+The v0.1.1 Big Pickle reconciliation was then tested locally: 87 tests run, 86
+passed, one platform skip, and the unchanged 35-check execution qualification
+passed. Its compact current evidence is `evidence/reconciliation-v011.json`.
+The v0.1.1 reconciliation adds nine dedicated config/repository tests. Hosted
+results for the previous qualified runtime and the Windows correction are recorded
+in [CI qualification](CI-QUALIFICATION.md); v0.1.1 CI is recorded after publication.
 The report pins source fingerprint
-`4bc956a8dcd696732d224d722ff9a1578f167c3d7294a9cf53d4e7e36b5b9c01`.
+`d5215e7ec0c17d7714d2d87a0f87b51fd8ac891178ecd8c988977f22c311675c`.
 That fingerprint covers kernel Python code, wire schemas and the trusted entry
 point. It excludes docs, launchers and tests; their exact bytes are identified
 by the Git commit. Re-run qualification after trusted executable changes.
@@ -60,8 +61,10 @@ VM providers, remote slot fetch or qualification on the user's Windows machine.
 
 The implementation has not been subjected to an independent security review,
 hardware power-loss qualification, or deployment on the user's Windows machine.
-The unpublished Big Pickle candidate was inaccessible; its reconciliation remains
-open. Issue #1 must remain open until its retained acceptance gates are met.
+The previously unavailable Big Pickle worktree has now been supplied as an archive,
+inventoried and reconciled in `docs/BIG-PICKLE-AUDIT.md`. Its safe fixed-repository
+configuration concept was reimplemented; its mislabeled/unsafe OMP review runner
+remains disabled. Issue #1 stays open for the real-agent/isolation gates.
 
 ## Reproduction and review
 

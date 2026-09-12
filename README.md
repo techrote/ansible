@@ -4,7 +4,7 @@ A small local execution substrate beneath Omnipanel, **not** the Red Hat Ansible
 project. Omnipanel owns orchestration. Ohmy owns provider-specific normalization.
 Ansible owns admission, fixed runner selection, execution lifecycle and evidence.
 
-**Implementation 0.1.0 / `ansible.execution.v1` / trusted-noop-only profile.**
+**Implementation 0.1.1 / `ansible.execution.v1` / trusted-noop-only profile.**
 The enabled runner is `noop_v1`. `omp_blind_review_v1` is deliberately disabled;
 requests for it return `RUNNER_NOT_QUALIFIED`. This is working kernel code, not a
 production sandbox for agents or arbitrary repository code. See
@@ -25,6 +25,22 @@ Each command below is a separate invocation from the repository root:
 py -3 -I -S -B run_kernel.py contract
 py -3 -I -S -B run_kernel.py qualify
 py -3 -I -S -B run_kernel.py status
+py -3 -I -S -B run_kernel.py config
+```
+
+### Trusted local repository configuration
+
+Big Pickle's useful fixed-repository discovery has been reconciled into v0.1.1.
+Copy `config.example.json` to ignored `config/local.json` only when sibling
+discovery is insufficient. The only accepted repository IDs are `intrallm` and
+`dashminimix`; explicit paths must be absolute Git checkouts. Local configuration
+is operator-owned metadata, not task data, and cannot register a runner, command,
+module, hook, executable path, or capability. `resolve-repo` reports the resolved
+path without executing repository content.
+
+```powershell
+py -3 -I -S -B run_kernel.py config
+py -3 -I -S -B run_kernel.py resolve-repo intrallm
 ```
 
 The hosted Windows/Linux CI matrix has passed the tests and qualification;
@@ -70,6 +86,6 @@ python -I -S -B run_kernel.py qualify
 ```
 
 See [runtime contract](docs/RUNTIME-CONTRACT.md), [security boundary](docs/SECURITY.md),
-[Issue #1 reconciliation](docs/RECONCILIATION.md), and
+[Big Pickle audit](docs/BIG-PICKLE-AUDIT.md), [Issue #1 reconciliation](docs/RECONCILIATION.md), and
 [implementation evidence](docs/IMPLEMENTATION-EVIDENCE.md).
 Never enable real agents solely because the noop qualification profile passes.
