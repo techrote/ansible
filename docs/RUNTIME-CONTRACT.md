@@ -39,13 +39,14 @@ No environment, executable, module, shell, worktree or output path is a request 
 ## Trusted local configuration
 
 `config/local.json` is optional, ignored by Git, and belongs to the trusted operator
-plane. It is not part of the execution request contract. Version 0.1.1 accepts only
+plane. It is not part of the execution request contract. The config v1 schema accepts only
 fixed repository identifiers `intrallm` and `dashminimix`, optional safe slot/model
 metadata, and an optional absolute local-state path. Unknown/duplicate keys and
 invalid types fail closed. Explicit repository paths must be absolute existing Git
 checkouts; otherwise only same-parent sibling directories with those fixed names
-are discoverable. Symlink/reparse redirection is refused. A configured state root
-may not sit inside the trusted checkout or a resolved known repository.
+are discoverable. Symlink/reparse redirection is refused. Every CLI-selected state root, including platform defaults and explicit overrides,
+is canonicalized and checked before creation. The exact checked path is used by
+Store and may not sit inside the trusted checkout or a resolved known repository.
 
 These settings do not grant execution authority. In particular, approved model
 names cannot enable the disabled OMP runner, and repository resolution never

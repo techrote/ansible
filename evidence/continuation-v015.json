@@ -1,0 +1,17 @@
+{
+  "schema": "ansible.continuation-evidence.v1",
+  "issue": 11,
+  "implementation_version": "0.1.5",
+  "parent_commit": "669ab858ca20af6367b9080731749a319880e7dd",
+  "platform": "Linux",
+  "python": "3.13.5",
+  "tests_run": 166,
+  "tests_passed": 165,
+  "tests_skipped": 1,
+  "new_regression_tests": 12,
+  "new_test_failures_before_fix_including_subtests": 11,
+  "qualification_checks_passed": 35,
+  "source_fingerprint": "b5e8858ab88160ce02d27e060bebffe34e3989384795417ab4efb046e56c0dfa",
+  "real_agent_qualified": false,
+  "hosted_ci": "See associated PR checks; not asserted by this local report."
+}

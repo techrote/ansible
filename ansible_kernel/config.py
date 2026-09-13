@@ -6,14 +6,13 @@ limited to explicit absolute paths or sibling directories beside this checkout.
 """
 from __future__ import annotations
 
-import os
 from pathlib import Path
 import re
 import stat
 from typing import Any
 
 from .contract import Refusal, check, decode, safe_relative
-from .state import StateError, read_bytes
+from .state import StateError, default_state_root, read_bytes
 
 ROOT = Path(__file__).resolve().parent.parent
 KNOWN_REPOSITORIES = frozenset({"intrallm", "dashminimix"})
@@ -129,19 +128,17 @@ def resolve_repository(name: str, config: dict | None = None, root: Path = ROOT)
     return None
 
 
-def state_root(config: dict | None = None) -> Path | None:
+def state_root(config: dict | None = None) -> Path:
     config = config if config is not None else load()
     if config.get("local_state_dir"):
         return _plain(Path(config["local_state_dir"]))
-    if os.name == "nt":
-        local = os.environ.get("LOCALAPPDATA")
-        if not local:
-            raise ConfigError("LOCALAPPDATA_UNAVAILABLE")
-        return _plain(Path(local) / "techrote-ansible")
-    return None  # Store owns the existing POSIX default.
+    try:
+        return _plain(default_state_root())
+    except StateError as exc:
+        raise ConfigError(str(exc)) from exc
 
 
-def assert_state_root_isolated(path: Path, config: dict | None = None, root: Path = ROOT) -> None:
+def assert_state_root_isolated(path: Path, config: dict | None = None, root: Path = ROOT) -> Path:
     candidate = _plain(path)
     protected = [_plain(root)]
     config = config if config is not None else load()
@@ -155,3 +152,4 @@ def assert_state_root_isolated(path: Path, config: dict | None = None, root: Pat
         except ValueError:
             continue
         raise ConfigError("STATE_ROOT_INSIDE_GIT_CHECKOUT")
+    return candidate

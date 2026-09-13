@@ -4,7 +4,7 @@
 
 Repository: `techrote/ansible`. The original published baseline was `main` at
 `9f27ca4f4c9317ed8246851f2961adc8bdb2de74`, containing policy/docs, normalization
-rules, local ignores and `schemas/slot-v1.schema.json`. Draft PR #2 introduced the
+rules, local ignores and `schemas/slot-v1.schema.json`. PR #2 (since merged) introduced the
 versioned trusted execution kernel on `impl/01-trusted-kernel-contract-v1`.
 
 The previously unpublished Big Pickle worktree has now been supplied as
@@ -84,8 +84,10 @@ and qualification on the user's own Windows installation.
 
 ## Integration sequence
 
-Keep Issue #1 open as the execution-substrate acceptance target and PR #2 as a
-draft while real-agent isolation/provider gates remain open. Omnipanel may target
+Keep Issue #1 open as the execution-substrate acceptance target. PR #2 is merged;
+its noop-only scope did not require enabling real agents. Current continuation
+changes and evidence are in `docs/CONTINUATION-HANDOVER.md`; remaining transport,
+isolation/worktree and adapter work is tracked by #12, #13 and #14. Omnipanel may target
 the published contract and refused-capability behavior now. Ohmy may implement the
 normalized OMP/provider adapter in parallel. Enabling a real runner must remain
 serialized behind enforced isolation and adapter-specific outcome/evidence tests.

@@ -1,5 +1,22 @@
 # Kernel continuation release notes
 
+## 0.1.5 — canonical state-root isolation and handover
+
+Issue #11 shares one platform-default state-root policy between configuration and
+Store. The CLI now checks defaults as well as configured/explicit roots against
+known repositories before creation, and uses the exact canonical checked path.
+This also repairs a quoted-tilde mismatch between the path validated and the path
+Store actually used. Config output reports the concrete default on both systems.
+
+Local verification: 166 tests, 165 passed and one Windows-only skip; 35/35
+qualification checks. Twelve new tests reproduced eleven failures (including
+subtests) against v0.1.4 on Linux and pass after repair. All fixtures use temporary
+home/state directories. See `evidence/continuation-v015.json`.
+
+The current handover and documentation index reconcile merged PR #2 and the
+continuation work. Issues #12/#13/#14 define remaining transport, isolation and
+adapter gates; parent #1 remains open. No new execution authority is enabled.
+
 ## 0.1.4 — read-only inspection and event cursors
 
 Issue #9 adds versioned job inspection, bounded event paging, immutable minimal

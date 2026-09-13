@@ -131,9 +131,8 @@ def main(argv=None) -> int:
             path = resolve_repository(args.name, local_config)
             emit({"repository": args.name, "path": str(path) if path else None})
             return 0 if path else 1
-        root = args.state_root or configured_state_root(local_config)
-        if root is not None:
-            assert_state_root_isolated(root, local_config)
+        root = assert_state_root_isolated(
+            args.state_root or configured_state_root(local_config), local_config)
         kernel = Kernel(Store(root, create=args.command not in ("inspect", "events")))
         if args.command == "panel":
             return panel(kernel)
