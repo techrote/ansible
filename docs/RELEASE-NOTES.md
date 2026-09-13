@@ -1,5 +1,41 @@
 # Kernel continuation release notes
 
+## 0.2.3 — pinned inert repository snapshots
+
+Issue #22 adds the non-executing preparation slice of isolation issue #13. Exact
+40-character commits from the fixed local repository registry are materialized by
+reading Git commit/tree/blob objects only; ordinary checkout/worktree operations
+are deliberately not used. Symlinks, gitlinks, `.git` path components, case/prefix
+collisions, alternate object databases, linked-worktree metadata, oversized data
+and malformed plumbing output fail closed. Executable mode and exact blob bytes are
+preserved in a private, ownership-marked state snapshot. Cleanup accepts only the
+derived identity tuple and verifies the marker/content before bounded removal.
+
+The preparer grants no execution authority. `omp_blind_review_v1` remains disabled,
+`real_agent_qualified=false`, and actual filesystem/network/credential isolation
+remains issue #13. Candidate future profiles are documented in `PINNED-SNAPSHOTS.md`
+and remain unqualified until deployment-host negative tests prove their controls.
+
+Focused pre-publication Linux tests: 11/11 using real temporary Git repositories,
+including malicious checkout filter/hook configuration, symlink/gitlink rejection,
+case/path collisions, size bounds, alternate-object-database refusal, tampered
+ownership/content and cleanup containment. Full hosted matrix evidence is recorded
+on the implementation PR before merge.
+
+## 0.2.2 — disabled pinned Ohmy conformance seam
+
+Issue #20 / merged PR #21 adds `ansible.ohmy-summary.v1`, a fixture-first local
+conformance seam pinned to the inspected Ohmy draft PR #50 head and OMP v18.1.18
+revision. It accepts only bounded sanitized normalized facts, preserves provider/
+retry/protocol failure precedence, and projects into the generic worker contract.
+It does not import or launch Ohmy/OMP and never qualifies live execution.
+
+The corrected PR head passed all four Windows/Linux Python 3.12/3.13 jobs, including
+Windows PowerShell 5.1 smokes. Linux/Windows Python 3.13 evidence bundles were
+independently checksum/source verified. The release has 261 tests, 43/43 local/
+hosted qualification checks, and runtime fingerprint
+`774c1a32c5839273a99233c96585c2b3906785fabc59997c51886096ed5b85e6`.
+
 ## 0.2.1 — anchored job-bound success evidence
 
 Issue #18 repairs a reproduced cross-job evidence mix-up. New manifests bind the

@@ -4,7 +4,7 @@ A small local execution substrate beneath Omnipanel, **not** the Red Hat Ansible
 project. Omnipanel owns orchestration. Ohmy owns provider-specific normalization.
 Ansible owns admission, fixed runner selection, execution lifecycle and evidence.
 
-**Implementation 0.2.2 / `ansible.execution.v1` / trusted-noop-only profile.**
+**Implementation 0.2.3 / `ansible.execution.v1` / trusted-noop-only profile.**
 The enabled runner is `noop_v1`. `omp_blind_review_v1` is deliberately disabled;
 requests for it return `RUNNER_NOT_QUALIFIED`. This is working kernel code, not a
 production sandbox for agents or arbitrary repository code. See
@@ -37,6 +37,12 @@ discovery is insufficient. The only accepted repository IDs are `intrallm` and
 is operator-owned metadata, not task data, and cannot register a runner, command,
 module, hook, executable path, or capability. `resolve-repo` reports the resolved
 path without executing repository content.
+
+Implementation 0.2.3 also provides a trusted-library-only [pinned inert snapshot
+preparer](docs/PINNED-SNAPSHOTS.md) for issue #13 groundwork. It reads exact local
+Git commit/tree/blob objects without checkout, hooks, filters, submodules, LFS or
+remote access, and publishes ownership-marked bytes under private state. It is not
+a runner or sandbox and does not execute the materialized repository.
 
 ```powershell
 py -3 -I -S -B run_kernel.py config
