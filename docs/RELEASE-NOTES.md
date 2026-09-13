@@ -1,5 +1,29 @@
 # Kernel continuation release notes
 
+## 0.1.3 — bounded configuration and regular-file I/O
+
+Issue #7 bounds local configuration reads before allocation, shares the strict
+JSON decoder, refuses special files before opening, and closes descriptors when
+post-open validation fails. Existing symlink/reparse and hardlink checks remain;
+nonblocking open flags provide additional FIFO-race protection where available.
+No hostile same-user or network-filesystem sandbox guarantee is implied.
+
+Local verification: 126 tests, 125 passed and one Windows-only skip; 35/35
+qualification checks. Sixteen new tests reproduced nine failures and one error
+against v0.1.2, including an externally deadline-bounded real FIFO hang. The
+repaired suite passes. See `evidence/continuation-v013.json` and hosted PR checks.
+
+Configuration remains optional operator-owned metadata. It accepts at most 32 KiB
+of UTF-8 JSON and now shares the request decoder's depth-20/node-4096 limits.
+Malformed Unicode is refused. Duplicate/nonfinite error codes are preserved;
+oversized data returns `CONFIG_TOO_LARGE`, excessive complexity returns
+`CONFIG_COMPLEXITY`, and special-file paths return `NONREGULAR_STATE_FILE`.
+
+Python file-descriptor interfaces reference (consulted 2026-09-13):
+https://docs.python.org/3/library/os.html#os.open
+
+These are implementation hardening changes, not new task authority.
+
 ## 0.1.2 — slot-generation and reservation replay
 
 Issue #5 repairs first-refresh bootstrap-generation replacement, validates

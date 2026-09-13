@@ -6,14 +6,14 @@ limited to explicit absolute paths or sibling directories beside this checkout.
 """
 from __future__ import annotations
 
-import json
 import os
 from pathlib import Path
 import re
 import stat
 from typing import Any
 
-from .contract import Refusal, check, safe_relative
+from .contract import Refusal, check, decode, safe_relative
+from .state import StateError, read_bytes
 
 ROOT = Path(__file__).resolve().parent.parent
 KNOWN_REPOSITORIES = frozenset({"intrallm", "dashminimix"})
@@ -43,30 +43,19 @@ def _plain(path: Path) -> Path:
 
 def _read_json(path: Path) -> Any:
     try:
-        raw = path.read_bytes()
+        raw = read_bytes(path, MAX_CONFIG_BYTES)
     except FileNotFoundError:
         return {}
-    if len(raw) > MAX_CONFIG_BYTES:
-        raise ConfigError("CONFIG_TOO_LARGE")
-
-    def pairs(items):
-        result = {}
-        for key, value in items:
-            if key in result:
-                raise ConfigError("DUPLICATE_CONFIG_KEY")
-            result[key] = value
-        return result
-
-    def constant(_):
-        raise ConfigError("NONFINITE_CONFIG_NUMBER")
-
+    except StateError as exc:
+        code = "CONFIG_TOO_LARGE" if str(exc) == "STATE_SIZE_LIMIT" else str(exc)
+        raise ConfigError(code) from exc
     try:
-        return json.loads(raw.decode("utf-8"), object_pairs_hook=pairs,
-                          parse_constant=constant, parse_float=constant)
-    except ConfigError:
-        raise
-    except (UnicodeError, ValueError, RecursionError) as exc:
-        raise ConfigError("INVALID_LOCAL_CONFIG") from exc
+        return decode(raw)
+    except Refusal as exc:
+        code = {"DUPLICATE_KEY": "DUPLICATE_CONFIG_KEY",
+                "NONFINITE_NUMBER": "NONFINITE_CONFIG_NUMBER",
+                "INPUT_COMPLEXITY": "CONFIG_COMPLEXITY"}.get(exc.code, "INVALID_LOCAL_CONFIG")
+        raise ConfigError(code) from exc
 
 
 def _repository(path_value: Any, name: str) -> Path:

@@ -36,11 +36,24 @@ def plain(path: Path) -> None:
 
 def opened(path: Path, flags: int):
     plain(path)
-    fd = os.open(path, flags | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_BINARY", 0), 0o600)
-    info = os.fstat(fd)
-    if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
-        os.close(fd)
+    # Reject FIFOs/devices/directories before open: a FIFO open can block before
+    # descriptor validation. Retain the post-open check for replacement races.
+    try:
+        before = path.lstat()
+    except FileNotFoundError:
+        before = None
+    if before is not None and not stat.S_ISREG(before.st_mode):
         raise StateError("NONREGULAR_STATE_FILE")
+    flags |= (getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_BINARY", 0)
+              | getattr(os, "O_NONBLOCK", 0))
+    fd = os.open(path, flags, 0o600)
+    try:
+        info = os.fstat(fd)
+        if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+            raise StateError("NONREGULAR_STATE_FILE")
+    except BaseException:
+        os.close(fd)
+        raise
     return fd
 
 
