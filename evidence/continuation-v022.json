@@ -1,0 +1,30 @@
+{
+  "implementation_version": "0.2.2",
+  "execution_contract": "ansible.execution.v1",
+  "scope": "issue-20-disabled-ohmy-conformance-seam",
+  "ohmy_observation": {
+    "repository": "techrote/ohmy",
+    "pull_request": 50,
+    "draft_head": "ff36977f67fc9f8f089e1db8e7aee3a7dee84ffb",
+    "normalized_contract_version": 1,
+    "omp_revision": "00085d4e7dfdcfbf302c122fa2682b410a0f43d1",
+    "live_runtime_executed": false
+  },
+  "local_verification": {
+    "platform": "Linux",
+    "python": "3.13.5",
+    "tests_run": 261,
+    "tests_passed": 260,
+    "tests_skipped": 1,
+    "qualification_checks": 43,
+    "qualification_passed": 43,
+    "source_fingerprint": "774c1a32c5839273a99233c96585c2b3906785fabc59997c51886096ed5b85e6"
+  },
+  "claims": {
+    "noop_v1_enabled": true,
+    "omp_blind_review_v1_enabled": false,
+    "real_agent_qualified": false,
+    "ohmy_live_adapter_qualified": false,
+    "hostile_code_isolation_qualified": false
+  }
+}
