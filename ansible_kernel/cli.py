@@ -14,6 +14,7 @@ from .contract import MAX_BYTES, REGISTRY, Refusal, canonical
 from .config import ConfigError, assert_state_root_isolated, load as load_config, resolve_repository, state_root as configured_state_root
 from .kernel import Kernel, ROOT, fingerprint
 from .state import Store, StateError, TERMINAL, read_bytes
+from .queries import EVENTS_CONTRACT, STATUS_CONTRACT, MAX_PAGE_SIZE, events_page, inspect_job
 
 
 def emit(value) -> None:
@@ -89,8 +90,12 @@ def main(argv=None) -> int:
     commands.add_parser("run").add_argument("request_file", help="JSON file or - for stdin")
     commands.add_parser("run-slot").add_argument("number", type=int, choices=range(1, 5))
     commands.add_parser("refresh").add_argument("directory", type=Path)
-    for name in ("cancel", "contain", "result", "export"):
+    for name in ("cancel", "contain", "result", "export", "inspect"):
         commands.add_parser(name).add_argument("job_id")
+    events = commands.add_parser("events")
+    events.add_argument("job_id")
+    events.add_argument("--after", type=int, default=0)
+    events.add_argument("--limit", type=int, default=100)
     args = parser.parse_args(argv)
     try:
         if args.expect_contract != CONTRACT:
@@ -100,7 +105,9 @@ def main(argv=None) -> int:
                   "source_fingerprint": fingerprint(), "max_active_jobs_per_root": 1,
                   "runners": {key: {"enabled": value.enabled, "runner_contract": value.runner_contract,
                                     "provider_id": value.provider_id} for key, value in REGISTRY.items()},
-                  "real_agent_qualified": False})
+                  "real_agent_qualified": False,
+                  "query_contracts": {"inspect": STATUS_CONTRACT, "events": EVENTS_CONTRACT},
+                  "max_event_page_size": MAX_PAGE_SIZE})
             return 0
         if args.command == "qualify":
             from .qualification import qualify
@@ -127,9 +134,15 @@ def main(argv=None) -> int:
         root = args.state_root or configured_state_root(local_config)
         if root is not None:
             assert_state_root_isolated(root, local_config)
-        kernel = Kernel(Store(root))
+        kernel = Kernel(Store(root, create=args.command not in ("inspect", "events")))
         if args.command == "panel":
             return panel(kernel)
+        if args.command == "inspect":
+            emit(inspect_job(kernel.store, args.job_id))
+            return 0
+        if args.command == "events":
+            emit(events_page(kernel.store, args.job_id, after=args.after, limit=args.limit))
+            return 0
         if args.command == "run":
             raw = (sys.stdin.buffer.read(MAX_BYTES + 1) if args.request_file == "-"
                    else read_bytes(Path(args.request_file), MAX_BYTES + 1))

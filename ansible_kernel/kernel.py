@@ -162,6 +162,7 @@ class Kernel:
         with self.store.lock():
             self._ledger()
             self._recover()
+            value = None
             try:
                 value = self._slots()[number - 1]
                 self._generation(value)
@@ -172,12 +173,19 @@ class Kernel:
                 wire["timeout_seconds"] = value["timeout_seconds"]
                 return self._execute(canonical(wire), value)
             except Refusal as exc:
-                return self._rejected(exc, b"slot")
+                return self._rejected(exc, b"slot", slot_value=value)
 
-    def _rejected(self, exc: Refusal, raw: bytes, job_id: str | None = None) -> dict:
+    @staticmethod
+    def _slot_context(value: dict | None) -> dict | None:
+        return ({"slot": value["slot"], "generation": value["generation"]}
+                if value is not None else None)
+
+    def _rejected(self, exc: Refusal, raw: bytes, job_id: str | None = None,
+                  slot_value: dict | None = None) -> dict:
         if job_id is None:
             job_id = self.store.new_job({"input_sha256": hashlib.sha256(raw).hexdigest(),
-                                         "contract_version": CONTRACT, "implementation_version": VERSION})
+                                         "contract_version": CONTRACT, "implementation_version": VERSION,
+                                         "slot_context": self._slot_context(slot_value)})
         result = rejection(job_id, exc)
         with self.store.control_lock(job_id):
             write_once(self.store.job(job_id) / "result.json", canonical(result) + b"\n")
@@ -188,7 +196,8 @@ class Kernel:
         source = fingerprint()
         job_id = self.store.new_job({"input_sha256": hashlib.sha256(raw).hexdigest(),
                                      "contract_version": CONTRACT, "implementation_version": VERSION,
-                                     "source_fingerprint": source})
+                                     "source_fingerprint": source,
+                                     "slot_context": self._slot_context(slot_value)})
         path = self.store.job(job_id)
         try:
             value, runner = request(raw)

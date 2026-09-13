@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "job-status-v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_version",
+    "execution_contract",
+    "implementation_version",
+    "job_id",
+    "state",
+    "terminal",
+    "event_count",
+    "started_time_ns",
+    "last_event_time_ns",
+    "elapsed_ms",
+    "slot_context",
+    "control_requested",
+    "verified_result"
+  ],
+  "properties": {
+    "contract_version": {
+      "type": "string",
+      "const": "ansible.job-status.v1"
+    },
+    "execution_contract": {
+      "type": "string",
+      "const": "ansible.execution.v1"
+    },
+    "implementation_version": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 40
+    },
+    "job_id": {
+      "type": "string",
+      "minLength": 32,
+      "maxLength": 32,
+      "pattern": "^[0-9a-f]{32}$"
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "unknown",
+        "created",
+        "validated",
+        "admitted",
+        "starting",
+        "running",
+        "cancelling",
+        "completed",
+        "failed",
+        "cancelled",
+        "contained",
+        "timeout",
+        "rejected"
+      ]
+    },
+    "terminal": {
+      "type": "boolean"
+    },
+    "event_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "started_time_ns": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1
+    },
+    "last_event_time_ns": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1
+    },
+    "elapsed_ms": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "slot_context": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "slot",
+        "generation"
+      ],
+      "properties": {
+        "slot": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4
+        },
+        "generation": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        }
+      }
+    },
+    "control_requested": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "cancel",
+        "contain",
+        null
+      ]
+    },
+    "verified_result": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "Non-null value is independently validated against result-v1.schema.json and evidence is revalidated."
+    }
+  }
+}

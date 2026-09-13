@@ -1,5 +1,20 @@
 # Kernel continuation release notes
 
+## 0.1.4 — read-only inspection and event cursors
+
+Issue #9 adds versioned job inspection, bounded event paging, immutable minimal
+slot/generation association for new jobs, and read-only Store construction.
+Queries share one validated lifecycle snapshot and independently revalidate
+success evidence. Event pages omit stale raw result copies. Control markers are
+reported as requests, never proof of termination. Existing status/execution
+response shapes remain compatible. See `docs/QUERY-CONTRACT.md`.
+
+Local verification: 154 tests, 153 passed and one Windows-only skip; 35/35
+qualification checks. The 28 query tests include real concurrent observation,
+evidence tampering, restart cursors, binding/refusal metadata, malformed state,
+read-only roots and unchanged on-disk data. See `evidence/continuation-v014.json`
+and the hosted implementation PR checks.
+
 ## 0.1.3 — bounded configuration and regular-file I/O
 
 Issue #7 bounds local configuration reads before allocation, shares the strict
