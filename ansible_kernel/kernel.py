@@ -269,10 +269,20 @@ class Kernel:
             infra = {"state": "controller_failed", "exit_code": None, "controller_completed": False}
         write_once(path / "provider.json", canonical(metadata) + b"\n")
         evidence = "partial"
+        manifest_anchor = None
         if normalized is not None:
             write_once(path / "worker.json", normalized + b"\n")
-            manifest = {name: hashlib.sha256(read_bytes(path / name)).hexdigest() for name in runner.evidence}
-            write_once(path / "manifest.json", canonical(manifest) + b"\n")
+            manifest = {
+                "manifest_version": "ansible.evidence-manifest.v2", "job_id": job_id,
+                "runner_id": runner.runner_id, "runner_contract": runner.runner_contract,
+                "provider_id": runner.provider_id, "source_fingerprint": source,
+                "input_sha256": hashlib.sha256(raw).hexdigest(),
+                "files": {name: hashlib.sha256(read_bytes(path / name)).hexdigest()
+                          for name in ("metadata.json", *runner.evidence)},
+            }
+            manifest_raw = canonical(manifest) + b"\n"
+            write_once(path / "manifest.json", manifest_raw)
+            manifest_anchor = hashlib.sha256(manifest_raw).hexdigest()
             evidence = self.store.verify_evidence(job_id)
         if fingerprint() != source:
             infra = {**infra, "state": "environment_failed"}
@@ -287,5 +297,6 @@ class Kernel:
             terminal = {"success": "completed", "cancelled": "cancelled", "contained": "contained",
                         "timeout": "timeout"}.get(result["worker_outcome"], "failed")
             write_once(path / "result.json", canonical(result) + b"\n")
-            self.store.transition(job_id, terminal, result=result)
+            anchor = {"manifest_sha256": manifest_anchor} if manifest_anchor is not None else {}
+            self.store.transition(job_id, terminal, result=result, **anchor)
         return result

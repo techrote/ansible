@@ -1,5 +1,18 @@
 # Kernel continuation release notes
 
+## 0.2.1 — anchored job-bound success evidence
+
+Issue #18 repairs a reproduced cross-job evidence mix-up. New manifests bind the
+job, runner, source and metadata; terminal journal events anchor their exact hash.
+Success queries also revalidate job identity, the registered predicate and host
+axes. Legacy noop histories remain readable without invented anchors or mutation.
+See `EVIDENCE-BINDING.md` for compatibility and limitations.
+
+Local verification: 243 tests, 242 passed and one Windows-only skip; 35/35 noop
+qualification checks. Twenty-two new tests reproduced 20 reported failures on
+v0.2.0, then passed after repair. `OHMY-INTEGRATION-READINESS.md` records the actual
+pinned main/draft upstream inspection; no live adapter is enabled.
+
 ## 0.2.0 — opt-in pinned slot transport
 
 Issue #12 adds the fixed intrallm source, explicit credential pipe/prompt,

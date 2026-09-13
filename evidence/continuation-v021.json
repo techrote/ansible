@@ -1,0 +1,24 @@
+{
+  "schema": "ansible.continuation-evidence.v1",
+  "issue": 18,
+  "implementation_version": "0.2.1",
+  "parent_commit": "5f91a9e08697bf4aab6ac77c8df75c885009903a",
+  "platform": "Linux",
+  "python": "3.13.5",
+  "tests_run": 243,
+  "tests_passed": 242,
+  "tests_skipped": 1,
+  "new_regression_tests": 22,
+  "reported_failures_before_fix": 20,
+  "qualification_checks_passed": 35,
+  "source_fingerprint": "dd50d7905cf8fd92e0044c46772502ee67c2bcb0205b4bc5c034368d3a11ebcc",
+  "real_agent_qualified": false,
+  "live_adapter_qualified": false,
+  "hosted_ci": "See repair PR; not asserted by this local report.",
+  "actual_legacy_roundtrip": {
+    "source_release": "0.1.5",
+    "source_tree": "03860f850bd314d7eb7f333a859205c717beb2a1",
+    "result_unchanged": true,
+    "state_file_hashes_unchanged": true
+  }
+}

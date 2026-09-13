@@ -4,7 +4,7 @@ A small local execution substrate beneath Omnipanel, **not** the Red Hat Ansible
 project. Omnipanel owns orchestration. Ohmy owns provider-specific normalization.
 Ansible owns admission, fixed runner selection, execution lifecycle and evidence.
 
-**Implementation 0.2.0 / `ansible.execution.v1` / trusted-noop-only profile.**
+**Implementation 0.2.1 / `ansible.execution.v1` / trusted-noop-only profile.**
 The enabled runner is `noop_v1`. `omp_blind_review_v1` is deliberately disabled;
 requests for it return `RUNNER_NOT_QUALIFIED`. This is working kernel code, not a
 production sandbox for agents or arbitrary repository code. See

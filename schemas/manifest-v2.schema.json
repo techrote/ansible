@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "manifest_version",
+    "job_id",
+    "runner_id",
+    "runner_contract",
+    "provider_id",
+    "source_fingerprint",
+    "input_sha256",
+    "files"
+  ],
+  "properties": {
+    "manifest_version": {
+      "type": "string",
+      "const": "ansible.evidence-manifest.v2"
+    },
+    "job_id": {
+      "type": "string",
+      "minLength": 32,
+      "maxLength": 32,
+      "pattern": "^[0-9a-f]{32}$"
+    },
+    "runner_id": {
+      "type": "string",
+      "const": "noop_v1"
+    },
+    "runner_contract": {
+      "type": "string",
+      "const": "ansible.runner.noop.v1"
+    },
+    "provider_id": {
+      "type": "string",
+      "const": "trusted_local_v1"
+    },
+    "source_fingerprint": {
+      "type": "string",
+      "minLength": 64,
+      "maxLength": 64,
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "input_sha256": {
+      "type": "string",
+      "minLength": 64,
+      "maxLength": 64,
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "files": {
+      "type": "object",
+      "required": [
+        "metadata.json",
+        "worker.json",
+        "provider.json"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "metadata.json": {
+          "type": "string",
+          "minLength": 64,
+          "maxLength": 64,
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "worker.json": {
+          "type": "string",
+          "minLength": 64,
+          "maxLength": 64,
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "provider.json": {
+          "type": "string",
+          "minLength": 64,
+          "maxLength": 64,
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    }
+  }
+}
