@@ -75,6 +75,8 @@ def project(raw: bytes, expected_job_id: str) -> dict:
     if value["lifecycle"] == "command_failed":
         worker_outcome = "failed"
     elif value["lifecycle"] in ("local_only", "indeterminate"):
+        # A local-only acknowledgement/output is not evidence that the requested
+        # model review ran, and indeterminate lifecycle cannot establish success.
         worker_outcome = "no_result"
 
     code = value["failure_code"]
@@ -88,6 +90,8 @@ def project(raw: bytes, expected_job_id: str) -> dict:
         if transport == "ready":
             transport = "protocol_failed"
     elif source != "NONE":
+        # Includes normalized CANCELLED: worker/provider data cannot assert the
+        # host-owned cancellation/timeout/containment axes.
         worker_outcome, error_class = "worker_error", "worker"
 
     if transport not in ("ready", "retry_exhausted") and worker_outcome == "success":
