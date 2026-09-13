@@ -11,6 +11,9 @@
 
 - [Fixed-origin slot transport](SLOT-TRANSPORT.md): opt-in data-only fetch, provenance, bounds and the separate producer/deployment gate #16.
 
+- [Job-bound evidence](EVIDENCE-BINDING.md): terminal anchors, legacy compatibility and success revalidation.
+- [Ohmy readiness](OHMY-INTEGRATION-READINESS.md): pinned upstream inspection and remaining adapter gates.
+
 ## Historical evidence
 
 [Implementation evidence](IMPLEMENTATION-EVIDENCE.md),

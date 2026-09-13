@@ -137,7 +137,10 @@ available `provider.json`, `worker.json`, `manifest.json`, `result.json`.
 Provider evidence records limit mode and output hashes; raw stderr and exception
 strings are not stored. Request contents are not stored, only their digest.
 The terminal status event is authoritative; `result.json` is a convenience copy.
-Success queries recheck manifest hashes. Export reads a fixed filename whitelist
+New manifests bind the job, runner, metadata and source identity; terminal journal
+events anchor their exact SHA-256. Success queries verify that anchor, worker job
+identity, the registered noop predicate and host success axes. Known legacy noop
+histories remain readable without fabricated anchors. See `EVIDENCE-BINDING.md`. Export reads a fixed filename whitelist
 and returns an `ansible.evidence.v1` JSON snapshot; no arbitrary paths or Git patches.
 
 For execution/result commands: 0 = semantic success; 1 = admitted non-success or

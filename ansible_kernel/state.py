@@ -14,7 +14,7 @@ import stat
 import time
 import uuid
 
-from .contract import canonical, check, decode, Refusal
+from .contract import canonical, check, decode, Refusal, REGISTRY, outcome
 
 
 class StateError(RuntimeError):
@@ -241,7 +241,7 @@ class Store:
         previous = None
         for row in rows:
             if (not {"state", "time_ns"} <= row.keys()
-                    or row.keys() - {"state", "time_ns", "result"}
+                    or row.keys() - {"state", "time_ns", "result", "manifest_sha256"}
                     or type(row["state"]) is not str
                     or type(row["time_ns"]) is not int
                     or row["time_ns"] <= 0
@@ -249,6 +249,12 @@ class Store:
                 raise StateError("INVALID_LIFECYCLE_RECORD")
             if "result" in row and row["state"] not in TERMINAL:
                 raise StateError("PREMATURE_RESULT_RECORD")
+            if "manifest_sha256" in row:
+                anchor = row["manifest_sha256"]
+                if type(anchor) is not str or not re.fullmatch(r"[0-9a-f]{64}", anchor):
+                    raise StateError("INVALID_MANIFEST_ANCHOR")
+                if row["state"] not in TERMINAL or "result" not in row:
+                    raise StateError("PREMATURE_MANIFEST_ANCHOR")
             previous = row["state"]
         return rows
 
@@ -290,20 +296,58 @@ class Store:
         # Receipt is NOT proof that the process was terminated.
         return "requested"
 
-    def verify_evidence(self, job_id: str) -> str:
+    def _evidence(self, job_id: str, *, anchor: str | None = None,
+                  require_anchor: bool = False) -> tuple[str, dict]:
         path = self.job(job_id)
         try:
-            manifest = decode(read_bytes(path / "manifest.json"))
-            if type(manifest) is not dict or set(manifest) != {"worker.json", "provider.json"}:
-                return "invalid"
-            for name, expected in manifest.items():
-                if hashlib.sha256(read_bytes(path / name)).hexdigest() != expected:
-                    return "invalid"
-            return "complete"
+            raw_manifest = read_bytes(path / "manifest.json")
+            manifest = decode(raw_manifest)
+            if anchor is not None and hashlib.sha256(raw_manifest).hexdigest() != anchor:
+                return "invalid", {}
+            if require_anchor and anchor is None:
+                return "invalid", {}
+            if type(manifest) is not dict:
+                return "invalid", {}
+            bound = manifest.get("manifest_version") == "ansible.evidence-manifest.v2"
+            if bound:
+                check(manifest, "manifest-v2.schema.json")
+                if manifest["job_id"] != job_id:
+                    return "invalid", {}
+                hashes = manifest["files"]
+            elif set(manifest) == {"worker.json", "provider.json"} and not require_anchor:
+                hashes = manifest  # Historical noop-only format, never upgraded in place.
+            else:
+                return "invalid", {}
+            files = {}
+            for name, expected in hashes.items():
+                if type(expected) is not str or not re.fullmatch(r"[0-9a-f]{64}", expected):
+                    return "invalid", {}
+                files[name] = read_bytes(path / name)
+                if hashlib.sha256(files[name]).hexdigest() != expected:
+                    return "invalid", {}
+            worker = decode(files["worker.json"])
+            check(worker, "worker-v1.schema.json")
+            if worker["job_id"] != job_id:
+                return "invalid", {}
+            provider = decode(files["provider.json"])
+            if type(provider) is not dict:
+                return "invalid", {}
+            if bound:
+                metadata = decode(files["metadata.json"])
+                if (type(metadata) is not dict
+                        or metadata.get("source_fingerprint") != manifest["source_fingerprint"]
+                        or metadata.get("input_sha256") != manifest["input_sha256"]
+                        or provider.get("provider_id") != manifest["provider_id"]):
+                    return "invalid", {}
+            return "complete", files
         except FileNotFoundError:
-            return "missing"
+            return "missing", {}
         except (Refusal, StateError, OSError):
-            return "invalid"
+            return "invalid", {}
+
+    def verify_evidence(self, job_id: str) -> str:
+        # Pre-publication integrity/binding check, not terminal success authority.
+        return self._evidence(job_id)[0]
 
     def result(self, job_id: str) -> dict | None:
         return self._result_from_events(job_id, self.events(job_id))
@@ -320,10 +364,30 @@ class Store:
         if result["job_id"] != job_id:
             raise StateError("WRONG_JOB_RESULT")
         if result["worker_outcome"] == "success":
-            evidence = self.verify_evidence(job_id)
+            # These published implementations had only the fixed noop runner and
+            # predate anchored manifests. Unknown/new versions get no legacy exemption.
+            legacy = result["implementation_version"] in {
+                "0.1.0", "0.1.1", "0.1.2", "0.1.3", "0.1.4", "0.1.5", "0.2.0"}
+            evidence, files = self._evidence(job_id, anchor=rows[-1].get("manifest_sha256"),
+                                             require_anchor=not legacy)
             if evidence != "complete":
                 return {**result, "worker_outcome": "invalid_result", "evidence": evidence,
                         "reason": "EVIDENCE_REVALIDATION_FAILED"}
+            # No provider parsing or raw diagnostics: re-run the registered noop
+            # predicate using the same validated file snapshot and stored host axes.
+            verified = outcome(job_id, files["worker.json"], result["infrastructure"],
+                               evidence, REGISTRY["noop_v1"].predicate)
+            provider = decode(files["provider.json"])
+            if (rows[-1]["state"] != "completed" or result["admission"] != "admitted"
+                    or result["evidence"] != "complete"
+                    or verified["worker_outcome"] != "success"
+                    or verified["transport"] != result["transport"]
+                    or provider.get("provider_id") != "trusted_local_v1"
+                    or provider.get("limits_applied") is not True
+                    or provider.get("isolation") != "trusted_code_only"
+                    or provider.get("enforcement") not in ("linux_rlimit", "windows_job")):
+                return {**result, "worker_outcome": "invalid_result", "evidence": "invalid",
+                        "reason": "RESULT_SEMANTICS_REVALIDATION_FAILED"}
         return result
 
     def statuses(self) -> list[dict]:

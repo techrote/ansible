@@ -1,5 +1,21 @@
 # Continuation handover — 2026-09-13
 
+## Current continuation: 0.2.1
+
+Issue #12 was completed in merged PR #17 after four hosted CI jobs passed
+(run 34747543368). Linux/Windows artifacts were independently hash/source verified.
+The producer migration/authenticated deployment gate is still #16.
+
+Issue #18 adds anchored, job-bound manifests and semantic success revalidation;
+see [EVIDENCE-BINDING.md](EVIDENCE-BINDING.md). Local verification is 243 tests
+(242 passed, one Windows-only skip) and 35/35 noop qualification checks. Hosted
+repair results and merge identity are recorded in the associated PR.
+
+Ohmy main is still planning-only at the inspected pin; runtime work is on draft
+PR #50. [Readiness assessment](OHMY-INTEGRATION-READINESS.md) records exact pins,
+interface gaps and the work needed before an adapter can be enabled. No other
+repository was modified and `real_agent_qualified=false` remains mandatory.
+
 ## Transport continuation
 
 Implementation 0.2.0 adds the opt-in transport described in
