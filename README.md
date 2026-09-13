@@ -4,7 +4,7 @@ A small local execution substrate beneath Omnipanel, **not** the Red Hat Ansible
 project. Omnipanel owns orchestration. Ohmy owns provider-specific normalization.
 Ansible owns admission, fixed runner selection, execution lifecycle and evidence.
 
-**Implementation 0.1.5 / `ansible.execution.v1` / trusted-noop-only profile.**
+**Implementation 0.2.0 / `ansible.execution.v1` / trusted-noop-only profile.**
 The enabled runner is `noop_v1`. `omp_blind_review_v1` is deliberately disabled;
 requests for it return `RUNNER_NOT_QUALIFIED`. This is working kernel code, not a
 production sandbox for agents or arbitrary repository code. See
@@ -76,7 +76,9 @@ without creating state or acquiring the execution lock. A control receipt means
 the convenience `result.json` file alone is not authoritative.
 
 `refresh` reads only `slot1.json` through `slot4.json`. It neither downloads remote
-code nor updates the trusted checkout. There is currently **no remote fetch**.
+code nor updates the trusted checkout. An explicit, opt-in `refresh-remote` command now provides
+[fixed-origin data-only transport](docs/SLOT-TRANSPORT.md); the existing remote
+producer schema must first be migrated under issue #16. It is disabled by default.
 Slot 1 starts armed; slots 2-4 start idle. The panel's R key redraws cached data,
 not a network refresh. Q leaves active controller processes running.
 

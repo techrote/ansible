@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import getpass
 import json
 import os
 from pathlib import Path
@@ -14,6 +15,7 @@ from .contract import MAX_BYTES, REGISTRY, Refusal, canonical
 from .config import ConfigError, assert_state_root_isolated, load as load_config, resolve_repository, state_root as configured_state_root
 from .kernel import Kernel, ROOT, fingerprint
 from .state import Store, StateError, TERMINAL, read_bytes
+from .slot_transport import TransportError, fetch_remote_snapshot, token_value
 from .queries import EVENTS_CONTRACT, STATUS_CONTRACT, MAX_PAGE_SIZE, events_page, inspect_job
 
 
@@ -85,6 +87,9 @@ def main(argv=None) -> int:
     commands.add_parser("panel")
     commands.add_parser("recover")
     commands.add_parser("slots")
+    commands.add_parser("slot-source")
+    remote = commands.add_parser("refresh-remote")
+    remote.add_argument("--token-stdin", action="store_true", help="Read one token line from a trusted pipe, never a task")
     resolve = commands.add_parser("resolve-repo")
     resolve.add_argument("name", choices=("intrallm", "dashminimix"))
     commands.add_parser("run").add_argument("request_file", help="JSON file or - for stdin")
@@ -107,7 +112,8 @@ def main(argv=None) -> int:
                                     "provider_id": value.provider_id} for key, value in REGISTRY.items()},
                   "real_agent_qualified": False,
                   "query_contracts": {"inspect": STATUS_CONTRACT, "events": EVENTS_CONTRACT},
-                  "max_event_page_size": MAX_PAGE_SIZE})
+                  "max_event_page_size": MAX_PAGE_SIZE,
+                  "slot_transport": {"source_id": "intrallm_slots_v1", "operator_opt_in_required": True}})
             return 0
         if args.command == "qualify":
             from .qualification import qualify
@@ -125,7 +131,8 @@ def main(argv=None) -> int:
                   "repositories": repositories,
                   "slots_dir": local_config["slots_dir"],
                   "approved_models": local_config["approved_models"],
-                  "local_state_dir": str(local_state) if local_state else None})
+                  "local_state_dir": str(local_state) if local_state else None,
+                  "remote_slots_enabled": local_config.get("remote_slots_enabled", False)})
             return 0
         if args.command == "resolve-repo":
             path = resolve_repository(args.name, local_config)
@@ -133,7 +140,27 @@ def main(argv=None) -> int:
             return 0 if path else 1
         root = assert_state_root_isolated(
             args.state_root or configured_state_root(local_config), local_config)
-        kernel = Kernel(Store(root, create=args.command not in ("inspect", "events")))
+        if args.command == "refresh-remote":
+            if not local_config.get("remote_slots_enabled", False):
+                raise TransportError("REMOTE_SLOTS_DISABLED")
+            if args.token_stdin:
+                raw_token = sys.stdin.buffer.readline(258)
+                try:
+                    token = token_value(raw_token.removesuffix(b"\n").removesuffix(b"\r").decode("ascii"))
+                except UnicodeError as exc:
+                    raise TransportError("TRANSPORT_CREDENTIAL_INVALID") from exc
+            elif sys.stdin.isatty() and sys.stderr.isatty():
+                token = token_value(getpass.getpass("Read-only intrallm token (not stored): "))
+            else:
+                raise TransportError("TRANSPORT_CREDENTIAL_REQUIRED")
+            snapshot = fetch_remote_snapshot(token)
+            del token
+            emit(Kernel(Store(root)).refresh_remote(snapshot))
+            return 0
+        kernel = Kernel(Store(root, create=args.command not in ("inspect", "events", "slot-source")))
+        if args.command == "slot-source":
+            emit({"provenance": kernel.slot_source()})
+            return 0
         if args.command == "panel":
             return panel(kernel)
         if args.command == "inspect":
@@ -185,7 +212,7 @@ def main(argv=None) -> int:
     except Refusal as exc:
         emit({"contract_version": CONTRACT, "error": exc.code, "admission": exc.admission})
         return 2
-    except (StateError, ConfigError, OSError) as exc:
-        code = str(exc) if isinstance(exc, (StateError, ConfigError)) else "LOCAL_IO_FAILURE"
+    except (StateError, ConfigError, TransportError, OSError) as exc:
+        code = str(exc) if isinstance(exc, (StateError, ConfigError, TransportError)) else "LOCAL_IO_FAILURE"
         emit({"contract_version": CONTRACT, "error": code})
         return 3

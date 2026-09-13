@@ -165,5 +165,6 @@ def qualify() -> dict:
             "profile_qualified": passed, "real_agent_qualified": False,
             "runners": {"noop_v1": "ansible.runner.noop.v1", "omp_blind_review_v1": "disabled"},
             "unsupported": ["untrusted_code_isolation", "network_denial", "cpu_rate_limit",
-                            "live_ohmy_adapter", "vm_providers", "remote_slot_fetch"],
+                            "live_ohmy_adapter", "vm_providers", "worker_network_authority"],
+            "operator_slot_transport": "opt_in_separately_tested_not_qualified_by_noop",
             "checks": checks}

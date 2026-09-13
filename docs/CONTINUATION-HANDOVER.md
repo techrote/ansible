@@ -1,8 +1,17 @@
 # Continuation handover — 2026-09-13
 
-## Current implementation
+## Transport continuation
 
-**0.1.5 / ansible.execution.v1 / trusted-noop-only.** Only `noop_v1` is enabled.
+Implementation 0.2.0 adds the opt-in transport described in
+[SLOT-TRANSPORT.md](SLOT-TRANSPORT.md). Issue #12's code is implemented; actual
+producer migration and live authenticated deployment are tracked in #16.
+The producer currently uses the retired schema and is intentionally refused.
+Only noop execution remains enabled. The following v0.1.5 section preserves the
+previous completed run; use current `contract`/`qualify` output for source identity.
+
+## Prior implementation
+
+**Historical 0.1.5 / ansible.execution.v1 / trusted-noop-only.** Only `noop_v1` is enabled.
 `omp_blind_review_v1` still returns `RUNNER_NOT_QUALIFIED` and
 `real_agent_qualified` remains false. Omnipanel owns orchestration and the full UI;
 Ohmy owns provider-specific normalization. This continuation did not change other
@@ -77,7 +86,7 @@ verified termination. See [query contract](QUERY-CONTRACT.md).
 
 | Open issue | What can proceed | Gate which must remain closed |
 |---|---|---|
-| #12 — data-only transport | Fixed-origin slot/reference fetching, immutable commit/path/blob provenance, bounded/redacted transport and atomic snapshot tests | No trusted-code updates, worker network authority or implicit credential forwarding |
+| #16 — producer migration and deployment | Authorized data-only producer migration and actual authenticated acceptance of the implemented transport | No implicit producer writes, generation translation or claim of live qualification from fixtures |
 | #13 — isolation and pinned worktrees | Select/implement an actual supported provider profile; test worktree ownership/provenance/cleanup and hostile-code restrictions | No arbitrary candidate pytest/build or real-agent execution before proven isolation |
 | #14 — Ohmy adapter | Read/pin the actual current upstream contract; develop disabled adapter conformance fixtures alongside #12/#13 | Enable OMP only after isolation, required input provenance and runner-specific live outcome/evidence acceptance |
 
@@ -98,5 +107,5 @@ Start with [release notes](RELEASE-NOTES.md), [runtime contract](RUNTIME-CONTRAC
 [query contract](QUERY-CONTRACT.md), [security](SECURITY.md) and
 [CI bundle format](CI-EVIDENCE.md). The old [implementation report](IMPLEMENTATION-EVIDENCE.md)
 and [CI report](CI-QUALIFICATION.md) retain their historical fingerprints, not the
-current one. Use the current `contract`/`qualify` output and v0.1.5 evidence for the
-new runtime. Do not borrow another commit's or host's qualification.
+current one. Use the current `contract`/`qualify` output and version-matched
+evidence for the new runtime. Do not borrow another commit's or host's qualification.

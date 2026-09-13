@@ -78,12 +78,12 @@ def load(path: Path | None = None) -> dict:
         check(value, "config-v1.schema.json")
     except Refusal as exc:
         raise ConfigError("INVALID_LOCAL_CONFIG_SCHEMA") from exc
-    allowed = {"$comment", "repositories", "slots_dir", "approved_models", "local_state_dir"}
+    allowed = {"$comment", "repositories", "slots_dir", "approved_models", "local_state_dir", "remote_slots_enabled"}
     if value.keys() - allowed:
         raise ConfigError("UNKNOWN_CONFIG_KEY")
 
     normalized = {"repositories": {}, "slots_dir": "slots", "approved_models": ["none"],
-                  "local_state_dir": None}
+                  "local_state_dir": None, "remote_slots_enabled": False}
     repositories = value.get("repositories", {})
     if type(repositories) is not dict or repositories.keys() - KNOWN_REPOSITORIES:
         raise ConfigError("INVALID_REPOSITORIES_CONFIG")
@@ -112,6 +112,7 @@ def load(path: Path | None = None) -> dict:
         if type(raw) is not str or not Path(raw).is_absolute():
             raise ConfigError("STATE_ROOT_NOT_ABSOLUTE")
         normalized["local_state_dir"] = str(_plain(Path(raw)))
+    normalized["remote_slots_enabled"] = value.get("remote_slots_enabled", False)
     return normalized
 
 

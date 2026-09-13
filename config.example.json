@@ -5,6 +5,9 @@
     "dashminimix": "C:/code/dashminimix"
   },
   "slots_dir": "slots",
-  "approved_models": ["none"],
-  "local_state_dir": "C:/Users/you/AppData/Local/techrote-ansible"
+  "approved_models": [
+    "none"
+  ],
+  "local_state_dir": "C:/Users/you/AppData/Local/techrote-ansible",
+  "remote_slots_enabled": false
 }
