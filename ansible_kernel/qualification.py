@@ -54,6 +54,7 @@ def semantic_cases() -> list[dict]:
     ]
 
 
+
 def ohmy_summary(**changes) -> dict:
     value = {
         "contract_version": ADAPTER_CONTRACT, "job_id": JOB,
@@ -82,7 +83,6 @@ def ohmy_cases() -> list[dict]:
         {"name": "ohmy_fixture_transport_failure", "summary": ohmy_summary(transport="connection_failed"), "expected": "invalid_result"},
         {"name": "ohmy_fixture_normalized_cancel_not_host_cancel", "summary": ohmy_summary(failure_source="ASSISTANT", failure_code="CANCELLED"), "expected": "worker_error"},
     ]
-
 
 def assert_true(condition: bool, label: str = "ASSERTION_FAILED") -> None:
     if not condition:
