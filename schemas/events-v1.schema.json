@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "events-v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_version",
+    "execution_contract",
+    "job_id",
+    "after",
+    "next_cursor",
+    "total_events",
+    "has_more",
+    "terminal",
+    "events",
+    "verified_result"
+  ],
+  "properties": {
+    "contract_version": {
+      "type": "string",
+      "const": "ansible.events.v1"
+    },
+    "execution_contract": {
+      "type": "string",
+      "const": "ansible.execution.v1"
+    },
+    "job_id": {
+      "type": "string",
+      "minLength": 32,
+      "maxLength": 32,
+      "pattern": "^[0-9a-f]{32}$"
+    },
+    "after": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 2147483647
+    },
+    "next_cursor": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 2147483647
+    },
+    "total_events": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "has_more": {
+      "type": "boolean"
+    },
+    "terminal": {
+      "type": "boolean"
+    },
+    "events": {
+      "type": "array",
+      "maxItems": 128,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "sequence",
+          "state",
+          "time_ns"
+        ],
+        "properties": {
+          "sequence": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "unknown",
+              "created",
+              "validated",
+              "admitted",
+              "starting",
+              "running",
+              "cancelling",
+              "completed",
+              "failed",
+              "cancelled",
+              "contained",
+              "timeout",
+              "rejected"
+            ]
+          },
+          "time_ns": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      }
+    },
+    "verified_result": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "Non-null value is independently validated against result-v1.schema.json and evidence is revalidated."
+    }
+  }
+}

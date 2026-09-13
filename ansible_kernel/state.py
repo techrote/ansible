@@ -185,7 +185,7 @@ TRANSITIONS = {
 
 
 class Store:
-    def __init__(self, root: Path | None = None):
+    def __init__(self, root: Path | None = None, *, create: bool = True):
         if root is None:
             if os.name == "nt":
                 local = os.environ.get("LOCALAPPDATA")
@@ -200,12 +200,18 @@ class Store:
         checkout = Path(__file__).resolve().parent.parent
         if self.root.is_relative_to(checkout):
             raise StateError("STATE_INSIDE_TRUSTED_CHECKOUT")
-        self.root.mkdir(parents=True, mode=0o700, exist_ok=True)
+        if create:
+            self.root.mkdir(parents=True, mode=0o700, exist_ok=True)
+        elif not self.root.is_dir():
+            raise StateError("STATE_ROOT_NOT_FOUND")
         if os.name == "posix" and self.root.stat().st_mode & 0o077:
             raise StateError("STATE_PERMISSIONS_TOO_BROAD")
         self.runs = self.root / "runs"
         plain(self.runs)
-        self.runs.mkdir(mode=0o700, exist_ok=True)
+        if create:
+            self.runs.mkdir(mode=0o700, exist_ok=True)
+        elif not self.runs.is_dir():
+            raise StateError("RUNS_DIRECTORY_NOT_FOUND")
         self.ledger = self.root / "ledger.jsonl"
 
     def lock(self) -> Lock:
@@ -297,7 +303,10 @@ class Store:
             return "invalid"
 
     def result(self, job_id: str) -> dict | None:
-        rows = self.events(job_id)
+        return self._result_from_events(job_id, self.events(job_id))
+
+    def _result_from_events(self, job_id: str, rows: list[dict]) -> dict | None:
+        # rows is a validated snapshot from events(), never caller wire data.
         if not rows or rows[-1]["state"] not in TERMINAL:
             return None
         result = rows[-1].get("result")
@@ -322,7 +331,7 @@ class Store:
             try:
                 rows = self.events(path.name)
                 values.append({"job_id": path.name, "state": rows[-1]["state"] if rows else "unknown",
-                               "result": self.result(path.name), "time_ns": rows[-1].get("time_ns", 0) if rows else 0})
+                               "result": self._result_from_events(path.name, rows), "time_ns": rows[-1].get("time_ns", 0) if rows else 0})
             except (StateError, OSError):
                 values.append({"job_id": path.name, "state": "unreadable", "result": None})
         return values

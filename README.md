@@ -4,7 +4,7 @@ A small local execution substrate beneath Omnipanel, **not** the Red Hat Ansible
 project. Omnipanel owns orchestration. Ohmy owns provider-specific normalization.
 Ansible owns admission, fixed runner selection, execution lifecycle and evidence.
 
-**Implementation 0.1.3 / `ansible.execution.v1` / trusted-noop-only profile.**
+**Implementation 0.1.4 / `ansible.execution.v1` / trusted-noop-only profile.**
 The enabled runner is `noop_v1`. `omp_blind_review_v1` is deliberately disabled;
 requests for it return `RUNNER_NOT_QUALIFIED`. This is working kernel code, not a
 production sandbox for agents or arbitrary repository code. See
@@ -59,6 +59,8 @@ inside a repository or share it with an untrusted worker.
 python -I -S -B run_kernel.py run examples/noop-request.json
 python -I -S -B run_kernel.py run -
 python -I -S -B run_kernel.py result JOB_ID
+python -I -S -B run_kernel.py inspect JOB_ID
+python -I -S -B run_kernel.py events JOB_ID --after 0 --limit 100
 python -I -S -B run_kernel.py cancel JOB_ID
 python -I -S -B run_kernel.py contain JOB_ID
 python -I -S -B run_kernel.py export JOB_ID
@@ -67,7 +69,9 @@ python -I -S -B run_kernel.py refresh DIRECTORY_WITH_FOUR_SLOT_JSON_FILES
 ```
 
 `run -` reads one bounded JSON document from stdin and executes synchronously.
-Query/control commands can run in another terminal. A control receipt means
+Query/control commands can run in another terminal.
+`inspect` and paginated `events` provide [read-only job observations](docs/QUERY-CONTRACT.md)
+without creating state or acquiring the execution lock. A control receipt means
 **requested**, not verified termination. `result` revalidates success evidence;
 the convenience `result.json` file alone is not authoritative.
 
