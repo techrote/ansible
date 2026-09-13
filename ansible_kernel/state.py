@@ -184,16 +184,19 @@ TRANSITIONS = {
 }
 
 
+def default_state_root() -> Path:
+    """Resolve the platform policy without creating a directory."""
+    if os.name == "nt":
+        local = os.environ.get("LOCALAPPDATA")
+        if not local:
+            raise StateError("LOCALAPPDATA_UNAVAILABLE")
+        return Path(local) / "techrote-ansible"
+    return Path.home() / ".local" / "state" / "techrote-ansible"
+
+
 class Store:
     def __init__(self, root: Path | None = None, *, create: bool = True):
-        if root is None:
-            if os.name == "nt":
-                local = os.environ.get("LOCALAPPDATA")
-                if not local:
-                    raise StateError("LOCALAPPDATA_UNAVAILABLE")
-                root = Path(local) / "techrote-ansible"
-            else:
-                root = Path.home() / ".local" / "state" / "techrote-ansible"
+        root = default_state_root() if root is None else root
         self.root = Path(root).absolute()
         plain(self.root)
         self.root = self.root.resolve()

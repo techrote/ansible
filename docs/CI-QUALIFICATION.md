@@ -1,5 +1,9 @@
 # Hosted CI qualification: trusted-noop-only
 
+Historical initial-kernel report. For the current implementation, see
+[continuation handover](CONTINUATION-HANDOVER.md), [release notes](RELEASE-NOTES.md)
+and the corresponding implementation PR checks. The fingerprint below is historical.
+
 Observed on 2026-09-12 (UTC). Tested commit:
 `7915ad647cae922e8b8618dc3f32ac73e2f79168`.
 Tested tree: `e1ac513d2fbf778b3e046dc8c072b90b67596d40`.
@@ -48,7 +52,8 @@ This qualifies the hosted machines for the fixed `noop_v1` profile and exercises
 the included Windows provider/PowerShell wrapper. It does not qualify the user's
 own desktop, a hostile-code sandbox, a live Ohmy/OMP adapter, credential-bearing
 execution or a general descendant process tree. The report must continue to say
-`real_agent_qualified: false`. Issue #1 remains open and PR #2 remains a draft.
+`real_agent_qualified: false`. PR #2 was a draft at the time of this report and
+has since merged. Issue #1 remains open for the unimplemented profile gates.
 
 The local source ZIP and patch are separate convenience deliverables. Patch
 verification reconstructed the exact original five-file baseline, applied the

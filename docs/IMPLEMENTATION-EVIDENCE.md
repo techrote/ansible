@@ -1,5 +1,9 @@
 # Implementation evidence: 0.1.1 trusted-noop-only
 
+Historical v0.1.1 report. Current scope, verification and next work are in the
+[continuation handover](CONTINUATION-HANDOVER.md). Preserve the old fingerprints
+below as historical evidence, not current runtime identity.
+
 Date: 2026-09-12 (UTC). Remote starting commit:
 `9f27ca4f4c9317ed8246851f2961adc8bdb2de74`.
 Implementation branch: `impl/01-trusted-kernel-contract-v1`.
@@ -75,5 +79,6 @@ passing matrix is linked in `docs/CI-QUALIFICATION.md`; later revisions must
 re-run it rather than borrowing an older commit's qualification.
 
 Review `docs/RECONCILIATION.md` for scope changes and unavailable work.
-The implementation is proposed on a separate branch; there is no direct main
-update, merge, candidate deletion or change to other project repositories.
+This original implementation was proposed on a separate branch and later merged
+as PR #2. The continuation handover records subsequent verified merges. The
+audited candidate was not deleted and other project repositories were not changed.
