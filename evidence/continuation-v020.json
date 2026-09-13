@@ -1,0 +1,21 @@
+{
+  "schema": "ansible.continuation-evidence.v1",
+  "issue": 12,
+  "implementation_version": "0.2.0",
+  "parent_commit": "76e99588b179b92484a6fd0b502a45ff9f6510e6",
+  "platform": "Linux",
+  "python": "3.13.5",
+  "tests_run": 221,
+  "tests_passed": 220,
+  "tests_skipped": 1,
+  "new_tests": 55,
+  "qualification_checks_passed": 35,
+  "source_fingerprint": "499d5d0ad7024a30968698795c167a463f424441554df95d36d34cf71fa04ed2",
+  "real_agent_qualified": false,
+  "transport_evidence": "synthetic API fixtures, real loopback TLS and supervised-process probes",
+  "live_authenticated_transport_qualified": false,
+  "deployment_gate_issue": 16,
+  "inspected_source_commit": "67a55d339863f603d333c7a327cd2eb7cb1f54b5",
+  "current_remote_schema": "incompatible legacy schema; refused, not translated",
+  "hosted_ci": "See implementation PR checks; not asserted by this local report."
+}

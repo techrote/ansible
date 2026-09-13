@@ -9,6 +9,8 @@
 - [Security boundary](SECURITY.md) and [trusted policy](../POLICY.md): enabled versus unqualified authority.
 - [CI evidence bundles](CI-EVIDENCE.md): retained reports, source/provenance/checksums and interpretation.
 
+- [Fixed-origin slot transport](SLOT-TRANSPORT.md): opt-in data-only fetch, provenance, bounds and the separate producer/deployment gate #16.
+
 ## Historical evidence
 
 [Implementation evidence](IMPLEMENTATION-EVIDENCE.md),
@@ -18,7 +20,7 @@
 Their older test counts/fingerprints are not substitutes for current qualification.
 Machine-readable versioned evidence is under `../evidence/`.
 
-Parent issue #1 remains open. The live next work is #12 (pinned data-only
-transport), #13 (isolated pinned worktrees) and #14 (Ohmy adapter qualification).
+Parent issue #1 remains open. The transport implementation is now documented above; live producer/deployment
+acceptance remains #16. Other next work is #13 (isolated pinned worktrees) and #14 (Ohmy adapter qualification).
 Only noop execution is enabled today; a green test suite is not permission to
 activate unqualified runners.

@@ -1,5 +1,26 @@
 # Kernel continuation release notes
 
+## 0.2.0 — opt-in pinned slot transport
+
+Issue #12 adds the fixed intrallm source, explicit credential pipe/prompt,
+independent tree/blob hashes, bounded direct TLS in a supervised helper, atomic
+provenance publication and read-only `slot-source`. Launchers and local/offline
+refresh remain unchanged. No worker network or credential authority is granted.
+
+The existing remote source was inspected read-only and uses the retired schema.
+It is deliberately rejected; #16 tracks a separately authorized data-only
+migration and live authenticated deployment. No other repository was changed.
+See `SLOT-TRANSPORT.md` for limits, trust boundaries and verification scope.
+
+Local suite: 221 tests, 220 passed and one Windows-only skip; all 35 noop
+qualification checks passed. Fifty-five added tests include real loopback TLS,
+invalid certificate rejection, real helper kill/flood probes and native Git
+hash agreement. Hosted matrix evidence is recorded on the implementation PR.
+
+The runtime fingerprint now also covers `run_slot_transport.py`. New remote
+journal events fail closed on older kernels; do not delete reservations or
+silently downgrade a state root after remote publication.
+
 ## 0.1.5 — canonical state-root isolation and handover
 
 Issue #11 shares one platform-default state-root policy between configuration and
@@ -88,7 +109,7 @@ See `docs/CI-EVIDENCE.md` and PR #4 for the detailed provenance.
 ## Preserved scope
 
 Only `noop_v1` is enabled. Contract `ansible.execution.v1` is unchanged and
-`real_agent_qualified=false` remains mandatory. No network/credential transport,
-arbitrary repository execution, live model adapter or hostile-code sandbox is
-added. Omnipanel remains the orchestration owner; Ohmy owns provider parsing.
+`real_agent_qualified=false` remains mandatory. The opt-in operator transport
+does not grant worker network/credential authority. Arbitrary repository
+execution, a live model adapter and a hostile-code sandbox remain unavailable. Omnipanel remains the orchestration owner; Ohmy owns provider parsing.
 Issue #1 remains open for the remaining qualified execution capabilities.

@@ -10,6 +10,7 @@ from . import CONTRACT, VERSION
 from . import provider
 from .contract import (Refusal, canonical, decode, digest, make_request, outcome,
                        rejection, request, slot)
+from .slot_transport import TransportError, validate_snapshot
 from .state import (StateError, Store, TERMINAL, append, journal, plain, read_bytes,
                     write_once)
 
@@ -20,7 +21,7 @@ ROOT = Path(__file__).resolve().parent.parent
 def fingerprint() -> str:
     hasher = hashlib.sha256()
     paths = sorted((ROOT / "ansible_kernel").glob("*.py")) + sorted((ROOT / "schemas").glob("*.json"))
-    paths += [ROOT / "run_kernel.py"]
+    paths += [ROOT / "run_kernel.py", ROOT / "run_slot_transport.py"]
     for path in paths:
         hasher.update(str(path.relative_to(ROOT)).replace("\\", "/").encode())
         hasher.update(b"\0")
@@ -67,14 +68,17 @@ class Kernel:
                     if set(row) != {"type", "slot"}:
                         raise StateError("INVALID_LEDGER_EVENT")
                     observe(slot(canonical(row["slot"])))
-                elif kind == "slots_refreshed":
-                    if set(row) != {"type", "slots"} or type(row["slots"]) is not list or len(row["slots"]) != 4:
+                elif kind in ("slots_refreshed", "slots_remote_refreshed"):
+                    keys = {"type", "slots", "provenance"} if kind == "slots_remote_refreshed" else {"type", "slots"}
+                    if set(row) != keys or type(row["slots"]) is not list or len(row["slots"]) != 4:
                         raise StateError("INVALID_LEDGER_EVENT")
+                    if kind == "slots_remote_refreshed":
+                        validate_snapshot({"slots": row["slots"], "provenance": row["provenance"]})
                     for number, value in enumerate(row["slots"], 1):
                         observe(slot(canonical(value), number))
                 else:
                     raise StateError("UNKNOWN_LEDGER_EVENT")
-        except (Refusal, TypeError, KeyError) as exc:
+        except (Refusal, TransportError, TypeError, KeyError) as exc:
             raise StateError("INVALID_LEDGER_EVENT") from exc
         return rows
 
@@ -111,7 +115,7 @@ class Kernel:
         values = {n: slot(read_bytes(ROOT / "slots" / f"slot{n}.json"), n)
                   for n in range(1, 5)}
         for row in rows:
-            if row["type"] == "slots_refreshed":
+            if row["type"] in ("slots_refreshed", "slots_remote_refreshed"):
                 values = {value["slot"]: value for value in row["slots"]}
             elif row["type"] == "slot_seen":
                 values[row["slot"]["slot"]] = row["slot"]
@@ -146,9 +150,40 @@ class Kernel:
             # Persist the first full snapshot, even when it matches bootstrap.
             # Repeating an already-recorded snapshot is a read-only success.
             if (values != current
-                    or not any(row["type"] == "slots_refreshed" for row in rows)):
+                    or not any(row["type"] in ("slots_refreshed", "slots_remote_refreshed") for row in rows)):
                 append(self.store.ledger, {"type": "slots_refreshed", "slots": values})
         return values
+
+    @staticmethod
+    def _slot_source(rows: list[dict]) -> dict | None:
+        seen = {}
+        for row in reversed(rows):
+            if row["type"] == "slot_seen":
+                seen.setdefault(row["slot"]["slot"], row["slot"])
+            if row["type"] == "slots_remote_refreshed":
+                if any(digest(v) != digest(row["slots"][n - 1]) for n, v in seen.items()):
+                    return None
+                return row["provenance"]
+            if row["type"] == "slots_refreshed":
+                return None
+        return None
+
+    def slot_source(self) -> dict | None:
+        return self._slot_source(self._ledger())
+
+    def refresh_remote(self, snapshot: dict) -> dict:
+        snapshot = validate_snapshot(snapshot)
+        values, proof = snapshot["slots"], snapshot["provenance"]
+        with self.store.lock():
+            rows = self._ledger()
+            current = self._snapshot(rows)
+            for previous, value in zip(current, values):
+                self._compare_generation(previous, value)
+            changed = values != current or proof != self._slot_source(rows)
+            if changed:
+                append(self.store.ledger, {"type": "slots_remote_refreshed", **snapshot})
+        return {"contract_version": "ansible.remote-refresh.v1", "changed": changed,
+                "slots": values, "provenance": proof}
 
     def execute(self, raw: bytes) -> dict:
         with self.store.lock():

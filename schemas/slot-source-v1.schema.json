@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_version",
+    "source_id",
+    "repository",
+    "ref",
+    "commit_sha",
+    "root_tree_sha",
+    "slots_tree_sha",
+    "slots_digest",
+    "files"
+  ],
+  "properties": {
+    "contract_version": {
+      "type": "string",
+      "const": "ansible.slot-source.v1"
+    },
+    "source_id": {
+      "type": "string",
+      "const": "intrallm_slots_v1"
+    },
+    "repository": {
+      "type": "string",
+      "const": "techrote/intrallm"
+    },
+    "ref": {
+      "type": "string",
+      "const": "refs/heads/control/launcher-slots"
+    },
+    "commit_sha": {
+      "type": "string",
+      "minLength": 40,
+      "maxLength": 40,
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "root_tree_sha": {
+      "type": "string",
+      "minLength": 40,
+      "maxLength": 40,
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "slots_tree_sha": {
+      "type": "string",
+      "minLength": 40,
+      "maxLength": 40,
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "slots_digest": {
+      "type": "string",
+      "minLength": 64,
+      "maxLength": 64,
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "files": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "blob_sha",
+          "bytes",
+          "content_sha256",
+          "value_sha256"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "enum": [
+              "slots/slot1.json",
+              "slots/slot2.json",
+              "slots/slot3.json",
+              "slots/slot4.json"
+            ]
+          },
+          "blob_sha": {
+            "type": "string",
+            "minLength": 40,
+            "maxLength": 40,
+            "pattern": "^[0-9a-f]{40}$"
+          },
+          "bytes": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 65536
+          },
+          "content_sha256": {
+            "type": "string",
+            "minLength": 64,
+            "maxLength": 64,
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "value_sha256": {
+            "type": "string",
+            "minLength": 64,
+            "maxLength": 64,
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      }
+    }
+  }
+}

@@ -6,7 +6,9 @@ inert data. They cannot register runners, supply commands/modules/hooks,
 select executables, alter an environment, or update the trusted checkout.
 
 Trusted-code updates are explicit operator actions, separate from slot-data
-refreshes. Ansible does not fetch or execute code from `intrallm` in this release.
+refreshes. The opt-in operator transport may fetch only fixed slot data from `intrallm`; it
+never fetches executable updates or grants a worker network/credential capability.
+See `docs/SLOT-TRANSPORT.md` for its separate boundary and deployment gate.
 Request validation must include the published schema **and** runtime registry,
 capability, resource, generation and path checks.
 

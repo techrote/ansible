@@ -5,22 +5,47 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "$comment": {"type": "string", "maxLength": 4000},
+    "$comment": {
+      "type": "string",
+      "maxLength": 4000
+    },
     "repositories": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "intrallm": {"type": "string", "minLength": 1, "maxLength": 1000},
-        "dashminimix": {"type": "string", "minLength": 1, "maxLength": 1000}
+        "intrallm": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "dashminimix": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        }
       }
     },
-    "slots_dir": {"type": "string", "minLength": 1, "maxLength": 220},
+    "slots_dir": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 220
+    },
     "approved_models": {
       "type": "array",
       "maxItems": 100,
       "uniqueItems": true,
-      "items": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/+-]{0,119}$"}
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/+-]{0,119}$"
+      }
     },
-    "local_state_dir": {"type": "string", "minLength": 1, "maxLength": 1000}
+    "local_state_dir": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000
+    },
+    "remote_slots_enabled": {
+      "type": "boolean"
+    }
   }
 }

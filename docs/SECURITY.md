@@ -9,8 +9,11 @@ local CLI, not an authenticated network endpoint or a multi-user daemon.
 A process already running as the same user could replace trusted files or state;
 locks, hashes and path checks do not defeat that attacker.
 
-The only production child is the fixed standalone noop worker. It receives only
-a host-generated job ID and bounded duration on stdin. Resource arguments come
+The only production execution worker is the fixed standalone noop worker.
+A separate opt-in operator transport helper has a narrowly scoped read credential
+and direct TLS access to one fixed GitHub source; it is not a registered worker.
+See `SLOT-TRANSPORT.md` for its bounded protocol and deployment gate.
+The noop worker receives only a host-generated job ID and bounded duration on stdin. Resource arguments come
 from the validated registry envelope. The absolute interpreter and script path
 come from trusted local code. `-I -S -B`, an explicit environment allowlist,
 `close_fds`, no shell, and a per-job working directory exclude ordinary ambient
@@ -51,8 +54,9 @@ The default Windows root is `%LOCALAPPDATA%\techrote-ansible`; on Linux it is
 `~/.local/state/techrote-ansible`. POSIX root permissions must exclude group/other
 access. Windows relies on the operator's private application-data ACL; the code
 does not install a restricted-token/ACL sandbox. State on network shares is not a
-qualified configuration. Only the kernel's own checkout is mechanically excluded;
-operators must also keep custom roots outside other repositories.
+qualified configuration. The CLI excludes the trusted checkout and configured/discovered known repositories
+for default, configured and explicit roots. Operators must also keep roots outside
+other repositories; direct Store users must enforce their own repository policy.
 
 State paths reject traversal IDs, symlinks, Windows reparse points and regular-file
 hardlinks. Open operations use O_NOFOLLOW where available. This detects common
@@ -70,7 +74,9 @@ usual orphan continuation; there is no general adoption service.
 
 ## Credentials and integration gates
 
-No credential-bearing capability is registered. Child environment variables do
+No credential-bearing worker capability is registered. The operator transport
+uses an explicit stdin credential pipe, never a worker request or environment.
+Worker environment variables do
 not include tokens, PATH, Git configuration overrides or SSH-agent handles.
 The worker's environment isolation does not stop same-user filesystem credential
 access by arbitrary code; that is another reason arbitrary workers remain refused.

@@ -101,8 +101,9 @@ def terminate(process: subprocess.Popen, job: WindowsJob | None) -> None:
 
 class Capture:
     """Bound controller memory while continuously draining both child pipes."""
-    def __init__(self, stream, overflow):
+    def __init__(self, stream, overflow, limit=32768):
         self.data = bytearray()
+        self.limit = limit
         self.error = False
         self.stream, self.overflow = stream, overflow
         self.thread = threading.Thread(target=self._read, daemon=True)
@@ -114,7 +115,7 @@ class Capture:
                 chunk = self.stream.read(4096)
                 if not chunk:
                     return
-                available = 32768 - len(self.data)
+                available = self.limit - len(self.data)
                 self.data.extend(chunk[:available])
                 if len(chunk) > available:
                     self.overflow.set()
