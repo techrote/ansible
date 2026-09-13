@@ -11,6 +11,8 @@ from . import CONTRACT, WORKER_CONTRACT, VERSION
 from .contract import (Predicate, Refusal, canonical, make_request, outcome, request,
                        safe_relative)
 from .kernel import Kernel, fingerprint
+from .ohmy_adapter import (ADAPTER_CONTRACT, OHMY_NORMALIZED_CONTRACT, OHMY_REVISION,
+                           OMP_REVISION, project as project_ohmy)
 from .state import Store
 
 
@@ -49,6 +51,36 @@ def semantic_cases() -> list[dict]:
         {"name": "cancel_overrides_success", "worker": worker(), "stop": "cancelled", "expected": "cancelled"},
         {"name": "contain_overrides_success", "worker": worker(), "stop": "contained", "expected": "contained"},
         {"name": "timeout_overrides_success", "worker": worker(), "stop": "timeout", "expected": "timeout"},
+    ]
+
+
+def ohmy_summary(**changes) -> dict:
+    value = {
+        "contract_version": ADAPTER_CONTRACT, "job_id": JOB,
+        "ohmy_revision": OHMY_REVISION,
+        "normalized_contract_version": OHMY_NORMALIZED_CONTRACT,
+        "omp_revision": OMP_REVISION, "origin": "SYNTHETIC",
+        "run_id": "qualification-run", "session_id": "qualification-session",
+        "lifecycle": "agent_settled", "evidence_complete": True,
+        "transport": "ready", "failure_source": "NONE", "failure_code": "NONE",
+        "http_status": None, "retry_exhausted": False,
+        "final_output": "Synthetic analytical fixture.", "tool_calls": 0,
+        "implementation_activity": False,
+    }
+    value.update(changes)
+    return value
+
+
+def ohmy_cases() -> list[dict]:
+    return [
+        {"name": "ohmy_fixture_analytical", "summary": ohmy_summary(), "expected": "success"},
+        {"name": "ohmy_fixture_provider_429", "summary": ohmy_summary(failure_source="ASSISTANT", failure_code="RATE_LIMITED", http_status=429), "expected": "provider_error"},
+        {"name": "ohmy_fixture_retry_exhausted", "summary": ohmy_summary(failure_source="RETRY", failure_code="RETRY_EXHAUSTED", retry_exhausted=True), "expected": "provider_error"},
+        {"name": "ohmy_fixture_local_only", "summary": ohmy_summary(lifecycle="local_only"), "expected": "no_result"},
+        {"name": "ohmy_fixture_missing_output", "summary": ohmy_summary(final_output=None), "expected": "no_result"},
+        {"name": "ohmy_fixture_partial_evidence", "summary": ohmy_summary(evidence_complete=False), "expected": "invalid_result"},
+        {"name": "ohmy_fixture_transport_failure", "summary": ohmy_summary(transport="connection_failed"), "expected": "invalid_result"},
+        {"name": "ohmy_fixture_normalized_cancel_not_host_cancel", "summary": ohmy_summary(failure_source="ASSISTANT", failure_code="CANCELLED"), "expected": "worker_error"},
     ]
 
 
@@ -104,6 +136,14 @@ def qualify() -> dict:
                              case.get("evidence", "complete"), predicate, case.get("stop"))
             assert_true(result["worker_outcome"] == case["expected"])
         run_check(case["name"], verify)
+    for case in ohmy_cases():
+        def verify_ohmy(case=case):
+            projection = project_ohmy(canonical(case["summary"]), JOB)
+            result = outcome(JOB, projection["worker_bytes"], INFRA,
+                             projection["evidence"], Predicate())
+            assert_true(result["worker_outcome"] == case["expected"])
+            assert_true(projection["qualification_eligible"] is False)
+        run_check(case["name"], verify_ohmy)
     with tempfile.TemporaryDirectory(prefix="ansible-qualify-") as directory:
         kernel = Kernel(Store(Path(directory)))
         run_check("accepted_schema", lambda: request(canonical(make_request("accepted"))))

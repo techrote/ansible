@@ -9,13 +9,13 @@ implementation, upstream approval or live model qualification.
 |---|---|---|
 | Ohmy main | `4e1a60f00c1c8850bd97b8e584f08f3e94df46f7` | Planning/docs only; no merged production runtime |
 | Main `docs/INTERFACES.md` | blob `a8e3b3b910dd64b8136008cafb0bb6f63291a501` | Initial Ansible integration is explicitly fixture-first |
-| Draft PR #50, `implementation/ohmy-v1-integrated` | head `9ff7e7f8c21569c18816a7eb8d49a42e8464ab5c` | Unmerged implementation frontier; live qualification not claimed |
+| Draft PR #50, `implementation/ohmy-v1-integrated` | head `ff36977f67fc9f8f089e1db8e7aee3a7dee84ffb` | Unmerged implementation frontier; normalized event/lifecycle work present; live qualification not claimed |
 | Draft `src/ohmy/events.py` | blob `9d7e8987771341fa7ee705b2b55cfd3bb96309d5` | Typed normalized events, run/session/sequence/provenance, counts and failure signals |
 
 Primary repository references:
 - https://github.com/techrote/ohmy/tree/4e1a60f00c1c8850bd97b8e584f08f3e94df46f7
 - https://github.com/techrote/ohmy/pull/50
-- https://github.com/techrote/ohmy/blob/9ff7e7f8c21569c18816a7eb8d49a42e8464ab5c/src/ohmy/events.py
+- https://github.com/techrote/ohmy/blob/ff36977f67fc9f8f089e1db8e7aee3a7dee84ffb/docs/NORMALIZED_SCHEMAS.md
 
 These sources were read using the authorized GitHub connector. No upstream code
 was imported/executed, no branch was merged, and no Ohmy repository was modified.
@@ -50,6 +50,20 @@ internal hashes alone. Existing worker/outcome fixtures remain active; the new
 22 regression tests add stale/copied/rehashed evidence and legacy-read protection.
 See [EVIDENCE-BINDING.md](EVIDENCE-BINDING.md).
 
-Actual isolated worktree/provider qualification (#13), stable upstream result
-contract selection and live adapter acceptance (#14) remain open. This assessment
-does not create a runnable adapter or enable `omp_blind_review_v1`.
+Issue #20 now adds a **disabled local conformance seam** pinned to the exact draft
+head above, normalized contract v1 and OMP revision
+`00085d4e7dfdcfbf302c122fa2682b410a0f43d1`. It accepts only sanitized bounded
+summary fields and projects them into `ansible.worker.v1`. Synthetic/recorded/live
+origin is retained, but this version hard-codes `qualification_eligible=false`.
+Raw frames, prompts, URLs, commands, executable paths, arbitrary evidence paths
+and secrets are not schema fields.
+
+This is deliberately not an assertion that Ohmy publishes this summary format.
+The Ohmy draft's lifecycle document explicitly says lifecycle does not classify
+run success and delegates that to OH-008. Ansible therefore treats its summary
+schema as a fixture/conformance boundary that must be replaced or reconciled with
+a stable upstream outcome/adapter publication before live integration.
+
+Actual isolated worktree/provider qualification (#13), stable upstream outcome
+contract selection and live adapter acceptance (#14) remain open. The seam cannot
+enable `omp_blind_review_v1`, and no upstream runtime was executed here.
