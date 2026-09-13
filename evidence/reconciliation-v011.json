@@ -1,0 +1,29 @@
+{
+  "evidence_version": "ansible.reconciliation-evidence.v1",
+  "implementation_version": "0.1.1",
+  "source_archive": "ansible-i01p.zip",
+  "source_archive_sha256": "58456ec16a581fc31a67637c91b5b1ab4081a416ab3de87bed112043abc16157",
+  "big_pickle_file_count": 35,
+  "big_pickle_total_bytes": 182886,
+  "local_platform": "Linux",
+  "local_python": "3.13.5",
+  "unit_tests_run": 87,
+  "unit_tests_passed": 86,
+  "unit_tests_skipped": 1,
+  "qualification_checks": 35,
+  "qualification_passed": true,
+  "source_fingerprint": "d5215e7ec0c17d7714d2d87a0f87b51fd8ac891178ecd8c988977f22c311675c",
+  "real_agent_qualified": false,
+  "salvaged": [
+    "strict operator-local config",
+    "fixed intrallm/dashminimix repository resolution",
+    "safe sibling repository discovery",
+    "configured state-root isolation"
+  ],
+  "explicitly_not_enabled": [
+    "Big Pickle omp_blind_review_v1",
+    "candidate pytest execution",
+    "untrusted repository worktree execution",
+    "live Ohmy/OMP adapter"
+  ]
+}

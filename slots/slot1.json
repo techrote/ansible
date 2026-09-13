@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "slot": 1,
+  "generation": 1,
+  "state": "armed",
+  "task_id": "slot-1-bootstrap",
+  "label": "Trusted smoke",
+  "runner_type": "noop_v1",
+  "run_policy": "once",
+  "timeout_seconds": 30
+}
