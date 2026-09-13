@@ -13,6 +13,7 @@
 
 - [Job-bound evidence](EVIDENCE-BINDING.md): terminal anchors, legacy compatibility and success revalidation.
 - [Ohmy readiness](OHMY-INTEGRATION-READINESS.md): pinned upstream inspection and remaining adapter gates.
+- [Pinned inert snapshots](PINNED-SNAPSHOTS.md): exact Git object materialization, ownership-safe cleanup and unqualified future isolation profiles.
 
 ## Historical evidence
 
@@ -24,6 +25,6 @@ Their older test counts/fingerprints are not substitutes for current qualificati
 Machine-readable versioned evidence is under `../evidence/`.
 
 Parent issue #1 remains open. The transport implementation is now documented above; live producer/deployment
-acceptance remains #16. Other next work is #13 (isolated pinned worktrees) and #14 (Ohmy adapter qualification).
+acceptance remains #16. Other next work is #13 (actual execution isolation after inert snapshot preparation) and #14 (Ohmy adapter qualification).
 Only noop execution is enabled today; a green test suite is not permission to
 activate unqualified runners.

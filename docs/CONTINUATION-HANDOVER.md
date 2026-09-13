@@ -1,20 +1,24 @@
 # Continuation handover — 2026-09-13
 
-## Current continuation: 0.2.1
+## Current continuation: 0.2.3
 
-Issue #12 was completed in merged PR #17 after four hosted CI jobs passed
-(run 34747543368). Linux/Windows artifacts were independently hash/source verified.
-The producer migration/authenticated deployment gate is still #16.
+Main before issue #22 work is merged v0.2.2 commit
+`80fa588842ada7966fe7a5cb4ec65cf93acebcf4`. Issue #20 / PR #21 added the
+disabled pinned Ohmy conformance seam after a corrected four-job hosted matrix;
+only `noop_v1` remains enabled and `real_agent_qualified=false`. Issue #14 therefore
+remains a live/stable adapter qualification gate, not a fixture-completeness task.
 
-Issue #18 adds anchored, job-bound manifests and semantic success revalidation;
-see [EVIDENCE-BINDING.md](EVIDENCE-BINDING.md). Local verification is 243 tests
-(242 passed, one Windows-only skip) and 35/35 noop qualification checks. Hosted
-repair results and merge identity are recorded in the associated PR.
+Issue #22 is the non-executing preparation slice of #13. The trusted snapshot
+preparer reads exact local commit/tree/blob objects from the fixed repository
+registry without checkout, hooks, filters, submodules, LFS or network access. It
+publishes verified ownership-marked bytes beneath private Ansible state and permits
+only identity-derived verified cleanup. See [PINNED-SNAPSHOTS.md](PINNED-SNAPSHOTS.md).
+This does not qualify hostile-code execution; #13 remains open for actual filesystem,
+network and credential isolation plus deployment-host negative tests.
 
-Ohmy main is still planning-only at the inspected pin; runtime work is on draft
-PR #50. [Readiness assessment](OHMY-INTEGRATION-READINESS.md) records exact pins,
-interface gaps and the work needed before an adapter can be enabled. No other
-repository was modified and `real_agent_qualified=false` remains mandatory.
+Issue #12's transport is implemented, but producer migration/authenticated
+deployment remains #16 because the inspected intrallm producer still uses retired
+slot data. No other repository is modified by the #22 snapshot work.
 
 ## Transport continuation
 
