@@ -112,7 +112,12 @@ One OS-held kernel lock spans admission, execution and finalization per state ro
 The append-only ledger reserves request IDs and once-only slot generations before
 launch. A crash consumes that attempt; retries need a new request ID/generation.
 This is **at-most-once admission**, not exactly-once task completion. Slot generation
-rollback and changes within an observed generation are refused.
+rollback and changes within an observed generation are refused. New refreshes
+compare against the effective snapshot, including bootstrap defaults for slots
+not yet recorded. Journal replay rejects cross-event generation changes and
+duplicate job/request/once reservations. Existing v0.1.1 first observations remain
+authoritative; no historical records are rewritten. An identical repeat refresh
+is successful without another append after the first full snapshot is recorded.
 
 Cancel creates an atomic empty marker and grants the fixed worker 0.5 seconds to
 cooperate before escalation. Contain has priority and immediately requests hard
@@ -140,6 +145,6 @@ Other commands' exit 0 only means that command completed (e.g. a control receipt
 Always interpret the typed response, not an exit code from an unrelated command.
 
 Qualification is host- and source-specific. `profile_qualified` applies only to
-`trusted-noop-only`; `real_agent_qualified` is always false in 0.1.1. Omnipanel must
+`trusted-noop-only`; `real_agent_qualified` is always false in the trusted-noop profile. Omnipanel must
 pin this contract plus the intended qualified runner/provider profile and must
 not treat noop qualification as permission to execute real model work.

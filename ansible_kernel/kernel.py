@@ -34,6 +34,15 @@ class Kernel:
 
     def _ledger(self) -> list[dict]:
         rows = journal(self.store.ledger)
+        observed = {}
+        jobs, requests, once = set(), set(), set()
+
+        def observe(value: dict) -> None:
+            previous = observed.get(value["slot"])
+            if previous is not None:
+                self._compare_generation(previous, value)
+            observed[value["slot"]] = value
+
         try:
             for row in rows:
                 kind = row.get("type")
@@ -47,15 +56,22 @@ class Kernel:
                     if row["once_key"] is not None and (type(row["once_key"]) is not str
                             or not re.fullmatch(r"[1-4]:[1-9][0-9]{0,9}", row["once_key"])):
                         raise StateError("INVALID_LEDGER_EVENT")
+                    if (row["job_id"] in jobs or row["request_key"] in requests
+                            or row["once_key"] is not None and row["once_key"] in once):
+                        raise StateError("DUPLICATE_RESERVATION")
+                    jobs.add(row["job_id"])
+                    requests.add(row["request_key"])
+                    if row["once_key"] is not None:
+                        once.add(row["once_key"])
                 elif kind == "slot_seen":
                     if set(row) != {"type", "slot"}:
                         raise StateError("INVALID_LEDGER_EVENT")
-                    slot(canonical(row["slot"]))
+                    observe(slot(canonical(row["slot"])))
                 elif kind == "slots_refreshed":
                     if set(row) != {"type", "slots"} or type(row["slots"]) is not list or len(row["slots"]) != 4:
                         raise StateError("INVALID_LEDGER_EVENT")
                     for number, value in enumerate(row["slots"], 1):
-                        slot(canonical(value), number)
+                        observe(slot(canonical(value), number))
                 else:
                     raise StateError("UNKNOWN_LEDGER_EVENT")
         except (Refusal, TypeError, KeyError) as exc:
@@ -89,29 +105,33 @@ class Kernel:
             self._ledger()  # Do not recover across a damaged reservation ledger.
             return self._recover()
 
-    def _slots(self) -> list[dict]:
-        rows = self._ledger()
-        for row in reversed(rows):
+    def _snapshot(self, rows: list[dict]) -> list[dict]:
+        # Recorded observations outrank checkout defaults. In particular a
+        # slot_seen-only v0.1.1 history must survive a trusted source update.
+        values = {n: slot(read_bytes(ROOT / "slots" / f"slot{n}.json"), n)
+                  for n in range(1, 5)}
+        for row in rows:
             if row["type"] == "slots_refreshed":
-                return [slot(canonical(value), n) for n, value in enumerate(row["slots"], 1)]
-        return [slot(read_bytes(ROOT / "slots" / f"slot{n}.json"), n) for n in range(1, 5)]
+                values = {value["slot"]: value for value in row["slots"]}
+            elif row["type"] == "slot_seen":
+                values[row["slot"]["slot"]] = row["slot"]
+        return [slot(canonical(values[n]), n) for n in range(1, 5)]
+
+    def _slots(self) -> list[dict]:
+        return self._snapshot(self._ledger())
 
     def slots(self) -> list[dict]:
         return self._slots()
 
+    @staticmethod
+    def _compare_generation(previous: dict, value: dict) -> None:
+        if value["generation"] < previous["generation"]:
+            raise Refusal("GENERATION_ROLLBACK", "rejected_policy")
+        if value["generation"] == previous["generation"] and digest(value) != digest(previous):
+            raise Refusal("GENERATION_CONTENT_CHANGED", "rejected_policy")
+
     def _generation(self, value: dict) -> None:
-        seen = []
-        for row in self._ledger():
-            if row["type"] == "slots_refreshed":
-                seen.extend(v for v in row["slots"] if v["slot"] == value["slot"])
-            elif row["type"] == "slot_seen" and row["slot"]["slot"] == value["slot"]:
-                seen.append(row["slot"])
-        if seen:
-            previous = seen[-1]
-            if value["generation"] < previous["generation"]:
-                raise Refusal("GENERATION_ROLLBACK", "rejected_policy")
-            if value["generation"] == previous["generation"] and digest(value) != digest(previous):
-                raise Refusal("GENERATION_CONTENT_CHANGED", "rejected_policy")
+        self._compare_generation(self._slots()[value["slot"] - 1], value)
 
     def refresh(self, directory: Path) -> list[dict]:
         # This is an operator API, not a request field. Reads exactly four JSON files.
@@ -119,9 +139,15 @@ class Kernel:
         plain(directory)
         values = [slot(read_bytes(directory / f"slot{n}.json"), n) for n in range(1, 5)]
         with self.store.lock():
-            for value in values:
-                self._generation(value)
-            append(self.store.ledger, {"type": "slots_refreshed", "slots": values})
+            rows = self._ledger()
+            current = self._snapshot(rows)
+            for previous, value in zip(current, values):
+                self._compare_generation(previous, value)
+            # Persist the first full snapshot, even when it matches bootstrap.
+            # Repeating an already-recorded snapshot is a read-only success.
+            if (values != current
+                    or not any(row["type"] == "slots_refreshed" for row in rows)):
+                append(self.store.ledger, {"type": "slots_refreshed", "slots": values})
         return values
 
     def execute(self, raw: bytes) -> dict:

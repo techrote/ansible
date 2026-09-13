@@ -4,7 +4,7 @@ A small local execution substrate beneath Omnipanel, **not** the Red Hat Ansible
 project. Omnipanel owns orchestration. Ohmy owns provider-specific normalization.
 Ansible owns admission, fixed runner selection, execution lifecycle and evidence.
 
-**Implementation 0.1.1 / `ansible.execution.v1` / trusted-noop-only profile.**
+**Implementation 0.1.2 / `ansible.execution.v1` / trusted-noop-only profile.**
 The enabled runner is `noop_v1`. `omp_blind_review_v1` is deliberately disabled;
 requests for it return `RUNNER_NOT_QUALIFIED`. This is working kernel code, not a
 production sandbox for agents or arbitrary repository code. See
@@ -75,6 +75,9 @@ the convenience `result.json` file alone is not authoritative.
 code nor updates the trusted checkout. There is currently **no remote fetch**.
 Slot 1 starts armed; slots 2-4 start idle. The panel's R key redraws cached data,
 not a network refresh. Q leaves active controller processes running.
+
+See [release notes](docs/RELEASE-NOTES.md) for slot-generation fixes and
+[CI bundles](docs/CI-EVIDENCE.md) for reproducible hosted verification.
 
 ## Development and evidence
 
