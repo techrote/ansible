@@ -17,6 +17,7 @@ from .kernel import Kernel, ROOT, fingerprint
 from .state import Store, StateError, TERMINAL, read_bytes
 from .slot_transport import TransportError, fetch_remote_snapshot, token_value
 from .queries import EVENTS_CONTRACT, STATUS_CONTRACT, MAX_PAGE_SIZE, events_page, inspect_job
+from .isolation_profiles import PROFILE_CONTRACTS, REGISTRY_CONTRACT as ISOLATION_REGISTRY_CONTRACT, host_report as isolation_host_report
 
 
 def emit(value) -> None:
@@ -88,6 +89,7 @@ def main(argv=None) -> int:
     commands.add_parser("recover")
     commands.add_parser("slots")
     commands.add_parser("slot-source")
+    commands.add_parser("isolation")
     remote = commands.add_parser("refresh-remote")
     remote.add_argument("--token-stdin", action="store_true", help="Read one token line from a trusted pipe, never a task")
     resolve = commands.add_parser("resolve-repo")
@@ -113,7 +115,12 @@ def main(argv=None) -> int:
                   "real_agent_qualified": False,
                   "query_contracts": {"inspect": STATUS_CONTRACT, "events": EVENTS_CONTRACT},
                   "max_event_page_size": MAX_PAGE_SIZE,
+                  "isolation": {"registry_contract": ISOLATION_REGISTRY_CONTRACT,
+                                "profiles": list(PROFILE_CONTRACTS), "runner_activation": False},
                   "slot_transport": {"source_id": "intrallm_slots_v1", "operator_opt_in_required": True}})
+            return 0
+        if args.command == "isolation":
+            emit(isolation_host_report())
             return 0
         if args.command == "qualify":
             from .qualification import qualify

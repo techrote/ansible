@@ -1,0 +1,32 @@
+{
+  "claims": {
+    "candidate_code_executed": false,
+    "noop_v1_enabled": true,
+    "omp_blind_review_v1_enabled": false,
+    "real_agent_qualified": false
+  },
+  "execution_contract": "ansible.execution.v1",
+  "implementation_version": "0.2.5",
+  "linux_profile": {
+    "contract": "ansible.isolation.linux-bwrap.v1",
+    "generic_registry_reimplements_profile": false,
+    "implementation_source": "merged issue #24 / PR #29"
+  },
+  "local_verification": {
+    "platform": "Linux",
+    "python": "3.13.5",
+    "qualification_checks": 43,
+    "qualification_passed": 43,
+    "source_fingerprint": "64e99a0b6bbf337f33a0a85a186d9b8d6c218812640f4f786881472811a5cd8f",
+    "tests_passed": 283,
+    "tests_run": 286,
+    "tests_skipped": 3
+  },
+  "scope": "issue-25-cross-platform-isolation-reconciliation",
+  "windows_profile": {
+    "contract": "ansible.isolation.windows-sandbox.v1",
+    "deployment_qualified": false,
+    "live_negative_probe_implemented": false,
+    "profile_qualified": false
+  }
+}
