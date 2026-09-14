@@ -13,7 +13,7 @@ jobs:
         os: [ubuntu-latest, windows-latest]
         python: ['3.12', '3.13']
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
+    timeout-minutes: 12
     env:
       ANSIBLE_CI_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
@@ -23,11 +23,33 @@ jobs:
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: ${{ matrix.python }}
+      - name: Provision Linux Bubblewrap qualification dependency
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends bubblewrap apparmor-profiles apparmor-utils
+          if ! sudo aa-status 2>/dev/null | grep -Eq '^\s*(bwrap|unpriv_bwrap)\s*$'; then
+            if [ ! -e /etc/apparmor.d/bwrap-userns-restrict ]; then
+              test -f /usr/share/apparmor/extra-profiles/bwrap-userns-restrict
+              sudo install -m 0644 /usr/share/apparmor/extra-profiles/bwrap-userns-restrict /etc/apparmor.d/bwrap-userns-restrict
+            fi
+            sudo apparmor_parser -r /etc/apparmor.d/bwrap-userns-restrict
+          fi
+          bwrap --version
+          bwrap --unshare-user --disable-userns --unshare-pid --unshare-net --ro-bind / / -- /bin/true
       - name: Unit, semantic and real process tests
         run: python -I -S -B tools/ci_evidence.py tests
       - name: Qualify this host and source fingerprint
         if: ${{ !cancelled() }}
         run: python -I -S -B tools/ci_evidence.py qualify
+      - name: Qualify Linux Bubblewrap isolation profile
+        if: ${{ !cancelled() && runner.os == 'Linux' }}
+        shell: bash
+        run: |
+          mkdir -p ci-evidence "$RUNNER_TEMP/ansible-bwrap-state"
+          chmod 700 "$RUNNER_TEMP/ansible-bwrap-state"
+          python -I -S -B run_isolation.py qualify --state-root "$RUNNER_TEMP/ansible-bwrap-state" > ci-evidence/isolation-linux-bwrap.json
       - name: Windows PowerShell 5.1 launcher smoke
         if: ${{ !cancelled() && runner.os == 'Windows' }}
         shell: powershell
@@ -52,6 +74,7 @@ jobs:
             ci-evidence/qualification.json
             ci-evidence/qualify.stderr.txt
             ci-evidence/qualify.exit.json
+            ci-evidence/isolation-linux-bwrap.json
             ci-evidence/source.tar
             ci-evidence/provenance.json
             ci-evidence/checksums.json
