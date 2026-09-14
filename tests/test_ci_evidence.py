@@ -79,6 +79,7 @@ class CIIsolationEvidenceTests(unittest.TestCase):
             output.mkdir()
             (output / "isolation-linux-bwrap.json").write_bytes(b"linux")
             (output / "isolation-platform.json").write_bytes(b"platform")
+            (output / "isolation-composition.json").write_bytes(b"composition")
             (output / "secret-isolation.json").write_bytes(b"secret")
             with patch.object(ci.subprocess, "check_output", return_value="a" * 40 + "\n"), \
                  patch.object(ci.subprocess, "run"):
@@ -86,4 +87,5 @@ class CIIsolationEvidenceTests(unittest.TestCase):
             hashes = json.loads((output / "checksums.json").read_text())
             self.assertIn("isolation-linux-bwrap.json", hashes)
             self.assertIn("isolation-platform.json", hashes)
+            self.assertIn("isolation-composition.json", hashes)
             self.assertNotIn("secret-isolation.json", hashes)

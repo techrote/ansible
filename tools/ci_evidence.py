@@ -76,7 +76,8 @@ def bundle(root: Path = ROOT) -> None:
     })
     # Fixed names, never include arbitrary files created by tests or local secrets.
     names = ["source.tar", "provenance.json",
-             "isolation-linux-bwrap.json", "isolation-platform.json"]
+             "isolation-linux-bwrap.json", "isolation-composition.json",
+             "isolation-platform.json"]
     for mode, report in REPORTS.items():
         names.extend([report, mode + ".stderr.txt", mode + ".exit.json"])
     hashes = {}

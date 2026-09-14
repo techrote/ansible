@@ -50,6 +50,26 @@ jobs:
           mkdir -p ci-evidence "$RUNNER_TEMP/ansible-bwrap-state"
           chmod 700 "$RUNNER_TEMP/ansible-bwrap-state"
           python -I -S -B run_isolation.py qualify --state-root "$RUNNER_TEMP/ansible-bwrap-state" > ci-evidence/isolation-linux-bwrap.json
+      - name: Qualify pinned snapshot to Bubblewrap composition
+        if: ${{ !cancelled() && runner.os == 'Linux' }}
+        shell: bash
+        run: |
+          fixture="$RUNNER_TEMP/ansible-composition-repo"
+          state="$RUNNER_TEMP/ansible-composition-state"
+          rm -rf "$fixture" "$state"
+          mkdir -p "$fixture" "$state" "$RUNNER_TEMP/ansible-composition-git-home"
+          chmod 700 "$fixture" "$state" "$RUNNER_TEMP/ansible-composition-git-home"
+          cp tests/fixtures/isolation_snapshot_probe.py "$fixture/ansible_sandbox_probe.py"
+          HOME="$RUNNER_TEMP/ansible-composition-git-home" GIT_CONFIG_NOSYSTEM=1 git init -q "$fixture"
+          HOME="$RUNNER_TEMP/ansible-composition-git-home" GIT_CONFIG_NOSYSTEM=1 git -C "$fixture" add ansible_sandbox_probe.py
+          HOME="$RUNNER_TEMP/ansible-composition-git-home" GIT_CONFIG_NOSYSTEM=1 git -C "$fixture" \
+            -c user.name='Ansible Qualification' -c user.email='qualification@example.invalid' commit -qm probe
+          commit=$(HOME="$RUNNER_TEMP/ansible-composition-git-home" GIT_CONFIG_NOSYSTEM=1 git -C "$fixture" rev-parse HEAD)
+          test -z "$(git -C "$fixture" remote)"
+          python -I -S -B run_isolation.py compose-qualify \
+            --state-root "$state" --repository-id dashminimix \
+            --repository-path "$fixture" --commit-sha "$commit" \
+            > ci-evidence/isolation-composition.json
       - name: Record platform isolation capability evidence
         if: ${{ !cancelled() }}
         run: python -I -S -B run_kernel.py isolation > ci-evidence/isolation-platform.json
@@ -78,6 +98,7 @@ jobs:
             ci-evidence/qualify.stderr.txt
             ci-evidence/qualify.exit.json
             ci-evidence/isolation-linux-bwrap.json
+            ci-evidence/isolation-composition.json
             ci-evidence/isolation-platform.json
             ci-evidence/source.tar
             ci-evidence/provenance.json

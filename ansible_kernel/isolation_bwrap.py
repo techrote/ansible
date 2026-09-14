@@ -220,9 +220,8 @@ def _kill_group(process: subprocess.Popen) -> None:
         pass
 
 
-def _run(mode: str, input_root: Path, output_root: Path, secret_path: Path,
-         wall_seconds: float = WALL_SECONDS) -> dict:
-    command = build_command(mode, input_root, output_root, secret_path)
+def _run_command(mode: str, command: list[str], wall_seconds: float = WALL_SECONDS) -> dict:
+    """Run one trusted-code-constructed sandbox command with host enforcement."""
     overflow = threading.Event()
     process = subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE, cwd="/", env={"LANG": "C", "LC_ALL": "C"},
@@ -259,6 +258,12 @@ def _run(mode: str, input_root: Path, output_root: Path, secret_path: Path,
             "setup_error": _classify_setup_failure(stderr) if process.returncode not in (0, 42, 43, -9, -24) and stderr else None,
             "surviving_descendants": _survivors(observed_descendants),
             "elapsed_ms": int((time.monotonic() - started) * 1000)}
+
+
+def _run(mode: str, input_root: Path, output_root: Path, secret_path: Path,
+         wall_seconds: float = WALL_SECONDS) -> dict:
+    return _run_command(mode, build_command(mode, input_root, output_root, secret_path),
+                        wall_seconds)
 
 
 def availability() -> dict:

@@ -1,3 +1,11 @@
+## 0.2.6 — pinned snapshot → Linux sandbox composition qualification
+
+- Adds host-only `ansible.isolation-composition.v1`; no runner registration or task-facing command surface.
+- Executes fixed hostile fixture bytes from an exact `ansible.snapshot.v1` commit only inside `ansible.isolation.linux-bwrap.v1`.
+- Revalidates snapshot identity after every mode; proves output/deadline/descendant/memory/CPU controls and ownership-bounded cleanup.
+- Retains `isolation-composition.json` as fixed CI evidence on Linux.
+- Keeps `omp_blind_review_v1` disabled, `runner_activation=false`, and `real_agent_qualified=false`.
+
 # Kernel continuation release notes
 
 ## 0.2.3 — pinned inert repository snapshots
