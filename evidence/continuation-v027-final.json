@@ -1,0 +1,62 @@
+{
+  "claims": {
+    "candidate_publication_authority": false,
+    "deployment_qualified": false,
+    "noop_v1_enabled": true,
+    "omp_blind_review_v1_enabled": false,
+    "real_agent_qualified": false,
+    "runner_activation": false
+  },
+  "composition": {
+    "complete_check_set_required": true,
+    "contract": "ansible.isolation-composition.v1",
+    "linux_profile_fingerprint": "2dc0056cc87719222910bfb109cfe2cc22f22194649d0efdc085c7409ad94c85",
+    "shared_boundary_builder": true,
+    "trusted_entrypoint_sha256": "f2af54591d9a45fb43418142dc4f1fd582d448108dafec19d48846a9dbcaec21"
+  },
+  "final_implementation": {
+    "head_sha": "45cd6b82277e1884d830c4b2f45c8edb003a843e",
+    "merge_commit_sha": "168f32e4cbaffc81f98a55d706b429c9304e7272",
+    "source_fingerprint": "135ef0ba86ea7df08711c40719b391d4c50183b5565b38999dc4abad6d187dc4",
+    "tree_sha": "3e83b058e6eee66789eefbe5d4e2aaeb79a53ee4"
+  },
+  "final_pull_request_verification": {
+    "artifacts": {
+      "ubuntu_python_3_12_zip_sha256": "bc521cbbfd7b30e5ae27248efc53a69af0dd13b7afe2d3daa66813a069116cd9",
+      "ubuntu_python_3_13_zip_sha256": "e2f119f53d1527afffb5ccb62fcc0cc227b1e4fb82790f7c56a69482e3703f8f",
+      "windows_python_3_13_zip_sha256": "157094fc9fc29418e5c8d6a605e0a493afb65b534e054389315f7b2aa21a2226"
+    },
+    "inner_checksums_verified": true,
+    "kernel_qualification_checks": 43,
+    "kernel_qualification_passed": 43,
+    "linux_composition_checks": 7,
+    "linux_composition_passed": 7,
+    "source_archives_reconstruct_tree": "3e83b058e6eee66789eefbe5d4e2aaeb79a53ee4",
+    "tests": {
+      "ubuntu_python_3_12": {"run": 308, "skipped": 1},
+      "ubuntu_python_3_13": {"run": 308, "skipped": 1},
+      "windows_python_3_13": {"run": 308, "skipped": 7}
+    },
+    "workflow_jobs_passed": 4,
+    "workflow_jobs_total": 4,
+    "workflow_run": 34885939297
+  },
+  "post_merge_verification": {
+    "initial_windows_python_3_13_job": 104117812923,
+    "initial_windows_python_3_13_result": "unit_test_watchdog_timeout_after_8_wall_seconds",
+    "kernel_qualification_passed_on_initial_attempt": true,
+    "other_three_jobs_initial_attempt": "success",
+    "powershell_smoke_passed_on_initial_attempt": true,
+    "rerun_source_changed": false,
+    "rerun_tests": 308,
+    "rerun_windows_python_3_13_job": 104118877111,
+    "rerun_windows_python_3_13_result": "success",
+    "workflow_run": 34886336984
+  },
+  "historical_pre_final_local_record": {
+    "file": "evidence/continuation-v027.json",
+    "note": "Preserved as the pre-final-audit local snapshot. Its 305-test count and e6e970... fingerprint predate the refusal-evidence fix and are not the merged 0.2.7 identity."
+  },
+  "implementation_version": "0.2.7",
+  "scope": "issue-38-composition-probe-binding-final"
+}
