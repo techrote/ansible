@@ -70,3 +70,20 @@ class CIEvidenceTests(unittest.TestCase):
                 with self.assertRaises(subprocess.CalledProcessError):
                     ci.bundle(Path(temp))
             self.assertFalse((Path(temp) / "ci-evidence/provenance.json").exists())
+
+class CIIsolationEvidenceTests(unittest.TestCase):
+    def test_bundle_hashes_only_fixed_isolation_reports_when_present(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            output = root / "ci-evidence"
+            output.mkdir()
+            (output / "isolation-linux-bwrap.json").write_bytes(b"linux")
+            (output / "isolation-platform.json").write_bytes(b"platform")
+            (output / "secret-isolation.json").write_bytes(b"secret")
+            with patch.object(ci.subprocess, "check_output", return_value="a" * 40 + "\n"), \
+                 patch.object(ci.subprocess, "run"):
+                ci.bundle(root)
+            hashes = json.loads((output / "checksums.json").read_text())
+            self.assertIn("isolation-linux-bwrap.json", hashes)
+            self.assertIn("isolation-platform.json", hashes)
+            self.assertNotIn("secret-isolation.json", hashes)

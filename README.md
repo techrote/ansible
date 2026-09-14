@@ -4,7 +4,7 @@ A small local execution substrate beneath Omnipanel, **not** the Red Hat Ansible
 project. Omnipanel owns orchestration. Ohmy owns provider-specific normalization.
 Ansible owns admission, fixed runner selection, execution lifecycle and evidence.
 
-**Implementation 0.2.3 / `ansible.execution.v1` / trusted-noop-only profile.**
+**Implementation 0.2.5 / `ansible.execution.v1` / trusted-noop-only profile.**
 The enabled runner is `noop_v1`. `omp_blind_review_v1` is deliberately disabled;
 requests for it return `RUNNER_NOT_QUALIFIED`. This is working kernel code, not a
 production sandbox for agents or arbitrary repository code. See
@@ -26,6 +26,7 @@ py -3 -I -S -B run_kernel.py contract
 py -3 -I -S -B run_kernel.py qualify
 py -3 -I -S -B run_kernel.py status
 py -3 -I -S -B run_kernel.py config
+py -3 -I -S -B run_kernel.py isolation
 ```
 
 ### Trusted local repository configuration
@@ -43,6 +44,10 @@ preparer](docs/PINNED-SNAPSHOTS.md) for issue #13 groundwork. It reads exact loc
 Git commit/tree/blob objects without checkout, hooks, filters, submodules, LFS or
 remote access, and publishes ownership-marked bytes under private state. It is not
 a runner or sandbox and does not execute the materialized repository.
+Implementation 0.2.4 qualified the Linux Bubblewrap profile. Implementation 0.2.5
+adds [cross-platform isolation reporting](docs/ISOLATION-PROFILES.md) and the fixed
+Windows Sandbox configuration/capability probe. Windows remains unqualified until
+a live negative probe succeeds on an actual supported host.
 
 ```powershell
 py -3 -I -S -B run_kernel.py config

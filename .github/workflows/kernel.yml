@@ -50,6 +50,9 @@ jobs:
           mkdir -p ci-evidence "$RUNNER_TEMP/ansible-bwrap-state"
           chmod 700 "$RUNNER_TEMP/ansible-bwrap-state"
           python -I -S -B run_isolation.py qualify --state-root "$RUNNER_TEMP/ansible-bwrap-state" > ci-evidence/isolation-linux-bwrap.json
+      - name: Record platform isolation capability evidence
+        if: ${{ !cancelled() }}
+        run: python -I -S -B run_kernel.py isolation > ci-evidence/isolation-platform.json
       - name: Windows PowerShell 5.1 launcher smoke
         if: ${{ !cancelled() && runner.os == 'Windows' }}
         shell: powershell
@@ -75,6 +78,7 @@ jobs:
             ci-evidence/qualify.stderr.txt
             ci-evidence/qualify.exit.json
             ci-evidence/isolation-linux-bwrap.json
+            ci-evidence/isolation-platform.json
             ci-evidence/source.tar
             ci-evidence/provenance.json
             ci-evidence/checksums.json
