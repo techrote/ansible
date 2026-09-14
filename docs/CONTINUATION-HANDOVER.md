@@ -1,31 +1,45 @@
-# Continuation handover — 2026-09-13
+# Continuation handover — 2026-09-14
 
-## Current continuation: 0.2.3
+## Current continuation: 0.2.7
 
-Main before issue #22 work is merged v0.2.2 commit
-`80fa588842ada7966fe7a5cb4ec65cf93acebcf4`. Issue #20 / PR #21 added the
-disabled pinned Ohmy conformance seam after a corrected four-job hosted matrix;
-only `noop_v1` remains enabled and `real_agent_qualified=false`. Issue #14 therefore
-remains a live/stable adapter qualification gate, not a fixture-completeness task.
+Implementation 0.2.7 is the issue #38 hardening follow-up to PR #37. PR #37's
+hosted Ubuntu composition evidence remains valid for the exact trusted fixture used by CI;
+`omp_blind_review_v1` remains disabled and `real_agent_qualified=false`.
 
-Issue #22 is the non-executing preparation slice of #13. The trusted snapshot
-preparer reads exact local commit/tree/blob objects from the fixed repository
-registry without checkout, hooks, filters, submodules, LFS or network access. It
-publishes verified ownership-marked bytes beneath private Ansible state and permits
-only identity-derived verified cleanup. See [PINNED-SNAPSHOTS.md](PINNED-SNAPSHOTS.md).
-This does not qualify hostile-code execution; #13 remains open for actual filesystem,
-network and credential isolation plus deployment-host negative tests.
+The post-merge audit identified one reusable-qualifier validity gap: the host-only
+composition API recorded the snapshot entrypoint SHA-256 but did not require it to
+match trusted hostile-fixture bytes. Issue #38 / implementation 0.2.7 binds that
+entrypoint to the trusted digest and makes standalone/composed Linux isolation share
+one fixed Bubblewrap boundary builder, eliminating duplicated namespace/mount policy.
+It also requires the exact complete composition check set and refuses a state root
+that contains the trusted checkout. No runner, provider, model or publication authority
+is added. See [ISOLATION-COMPOSITION.md](ISOLATION-COMPOSITION.md).
 
-Issue #12's transport is implemented, but producer migration/authenticated
-deployment remains #16 because the inspected intrallm producer still uses retired
-slot data. No other repository is modified by the #22 snapshot work.
+Local verification for the #38 implementation tree is **305 tests: 301 passed,
+4 explicit platform/mechanism skips**, plus **43/43** kernel qualification checks.
+Runtime fingerprint is `e6e97008a20314fa06ebcc3bb85dd1c280c12181bafb50462329ee9739b17990`.
+Because the local container lacks Bubblewrap, every final #38 head must still pass the
+real hosted Linux standalone and composed qualifications before merge.
+
+Issue #16 is now completed. `techrote/intrallm` PR #1 migrated exactly the four slot
+JSON files on `control/launcher-slots` to current-schema idle generation 2 and merged
+as producer commit `20117f4601a5a553184452daf80f78089bbd2608`. The real Windows
+deployment was observed at generation 1 before refresh, accepted generation 2 through
+the authenticated opt-in transport, retained exact `ansible.slot-source.v1` provenance,
+and returned `changed=false` on repeated authenticated refresh. The trusted Ansible
+checkout remained clean. No runner was enabled and no credential was persisted.
+
+Issues #13, #14, #16 and #32 are completed prerequisites; #38 is a fail-closed
+hardening follow-up. Parent #1 remains open for later orchestration/live-runner work.
+Only `noop_v1` is enabled.
 
 ## Transport continuation
 
 Implementation 0.2.0 adds the opt-in transport described in
-[SLOT-TRANSPORT.md](SLOT-TRANSPORT.md). Issue #12's code is implemented; actual
-producer migration and live authenticated deployment are tracked in #16.
-The producer currently uses the retired schema and is intentionally refused.
+[SLOT-TRANSPORT.md](SLOT-TRANSPORT.md). Issue #16 subsequently completed the producer
+migration and real authenticated deployment acceptance. The effective remote slot set is
+current-schema generation 2 and idle for all four slots, pinned by deployment provenance
+to producer commit `20117f4601a5a553184452daf80f78089bbd2608`.
 Only noop execution remains enabled. The following v0.1.5 section preserves the
 previous completed run; use current `contract`/`qualify` output for source identity.
 
@@ -104,22 +118,18 @@ verified termination. See [query contract](QUERY-CONTRACT.md).
 
 ## Next work and dependency boundaries
 
-| Open issue | What can proceed | Gate which must remain closed |
-|---|---|---|
-| #16 — producer migration and deployment | Authorized data-only producer migration and actual authenticated acceptance of the implemented transport | No implicit producer writes, generation translation or claim of live qualification from fixtures |
-| #13 — isolation and pinned worktrees | Select/implement an actual supported provider profile; test worktree ownership/provenance/cleanup and hostile-code restrictions | No arbitrary candidate pytest/build or real-agent execution before proven isolation |
-| #14 — Ohmy adapter | Read/pin the actual current upstream contract; develop disabled adapter conformance fixtures alongside #12/#13 | Enable OMP only after isolation, required input provenance and runner-specific live outcome/evidence acceptance |
-
-Those issues contain implementation prompts, scope and acceptance tests. Transport
-is not blocked on the live adapter, and adapter fixture development is not blocked
-on transport. Real-runner activation remains serialized behind all applicable
-profile/provenance/semantic gates. No current source or CI report proves that a
-model performed a review. VM providers and general candidate publication/export
+The external producer/deployment gate is complete. Issue #38 is the active local
+hardening slice; after it merges, parent #1 remains open for later integration work.
+Real-runner activation remains closed until the applicable Ohmy/live outcome,
+isolation and evidence gates are satisfied. No current source or CI report proves that
+a model performed a review. VM providers and general candidate publication/export
 also remain outside the current implemented profile.
 
 Qualification of the user's own Windows installation is separate from hosted CI.
-The current noop commands are available for that host-specific verification; this
-continuation did not operate the user's desktop or certify its environment.
+The authenticated slot-transport deployment has been exercised there, but Windows
+hostile-code isolation remains unqualified because the hosted Windows environment does
+not expose the Sandbox CLI and no supported deployment-host negative qualification has
+been recorded.
 
 ## Evidence and review entry points
 

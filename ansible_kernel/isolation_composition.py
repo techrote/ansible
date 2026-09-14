@@ -29,6 +29,10 @@ from .state import StateError, plain, read_bytes
 CONTRACT = "ansible.isolation-composition.v1"
 VERSION_NUMBER = 1
 ENTRYPOINT = "ansible_sandbox_probe.py"
+# SHA-256 of the trusted hostile fixture bytes in tests/fixtures/isolation_snapshot_probe.py.
+# Runtime qualification is intentionally bound to these exact bytes: an arbitrary
+# operator-selected commit may not substitute a self-reporting program at the fixed path.
+TRUSTED_ENTRYPOINT_SHA256 = "f2af54591d9a45fb43418142dc4f1fd582d448108dafec19d48846a9dbcaec21"
 MAX_ENTRYPOINT_BYTES = 128 * 1024
 MAX_REPORT_BYTES = 16 * 1024
 REQUIRED_BASELINE = (
@@ -36,11 +40,23 @@ REQUIRED_BASELINE = (
     "credential_env_absent", "network_blocked", "home_private",
     "pid_namespace", "result_write", "child_confined_write",
 )
+REQUIRED_CHECKS = frozenset({
+    "snapshot_filesystem_network_credentials_pid",
+    "output_bound",
+    "deadline_descendant_containment",
+    "memory_limit",
+    "cpu_limit",
+    "snapshot_identity_preserved",
+    "ownership_bounded_cleanup",
+})
 
 
 class CompositionError(RuntimeError):
-    def __init__(self, code: str):
+    def __init__(self, code: str, *, entrypoint_sha256: str | None = None):
         self.code = code
+        if entrypoint_sha256 is not None and re.fullmatch(r"[0-9a-f]{64}", entrypoint_sha256) is None:
+            raise ValueError("invalid bounded composition evidence")
+        self.entrypoint_sha256 = entrypoint_sha256
         super().__init__(code)
 
 
@@ -75,6 +91,12 @@ def _private_root(path: Path, repository_path: Path) -> Path:
             pass
         else:
             raise CompositionError("REPOSITORY_INSIDE_STATE_ROOT")
+        try:
+            trusted.relative_to(prospective)
+        except ValueError:
+            pass
+        else:
+            raise CompositionError("TRUSTED_CHECKOUT_INSIDE_STATE_ROOT")
         plain(path)
         path.mkdir(mode=0o700, parents=True, exist_ok=True)
         plain(path)
@@ -99,38 +121,21 @@ def _entrypoint(content: Path) -> tuple[Path, str]:
         raise CompositionError("COMPOSITION_ENTRYPOINT_INVALID") from exc
     if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1 or not raw:
         raise CompositionError("COMPOSITION_ENTRYPOINT_INVALID")
-    return path, hashlib.sha256(raw).hexdigest()
+    actual = hashlib.sha256(raw).hexdigest()
+    if actual != TRUSTED_ENTRYPOINT_SHA256:
+        raise CompositionError("COMPOSITION_ENTRYPOINT_HASH_MISMATCH",
+                               entrypoint_sha256=actual)
+    return path, actual
 
 
 def _build_command(mode: str, input_root: Path, output_root: Path,
                    secret_path: Path) -> list[str]:
     if mode not in bwrap.MODES:
         raise CompositionError("UNKNOWN_COMPOSITION_PROBE")
-    executable = bwrap._bwrap_executable()
-    bwrap._probe_python()
-    input_root = bwrap._ordinary_directory(input_root, "INPUT_ROOT_INVALID")
-    output_root = bwrap._ordinary_directory(output_root, "OUTPUT_ROOT_INVALID")
-    entrypoint, _ = _entrypoint(input_root)
-    args = [str(executable),
-            "--unshare-user", "--disable-userns", "--unshare-ipc", "--unshare-pid",
-            "--unshare-net", "--unshare-uts", "--unshare-cgroup-try",
-            "--cap-drop", "ALL", "--new-session", "--die-with-parent",
-            "--clearenv", "--setenv", "HOME", "/home/sandbox",
-            "--setenv", "USER", "sandbox", "--setenv", "LOGNAME", "sandbox",
-            "--setenv", "PATH", "/usr/bin:/bin", "--setenv", "LANG", "C.UTF-8",
-            "--setenv", "TMPDIR", "/tmp", "--setenv", "PYTHONDONTWRITEBYTECODE", "1",
-            "--dir", "/home", "--dir", "/home/sandbox", "--dir", "/run",
-            "--dir", "/input", "--dir", "/output", "--proc", "/proc", "--dev", "/dev",
-            "--tmpfs", "/tmp"]
-    args += bwrap._system_mounts()
-    # The executable is fixed by trusted code but its bytes come from the verified
-    # snapshot.  The host path is never exposed in the resulting evidence report.
-    args += ["--ro-bind", str(input_root), "/input",
-             "--bind", str(output_root), "/output",
-             "--chdir", "/input", "--hostname", "ansible-sandbox",
-             "/usr/bin/python3", "-I", "-S", "-B", "/input/" + entrypoint.name,
-             mode, str(Path(secret_path).absolute())]
-    return args
+    entrypoint, _ = _entrypoint(Path(input_root))
+    args = bwrap._boundary_command(input_root, output_root)
+    return args + ["/usr/bin/python3", "-I", "-S", "-B",
+                   "/input/" + entrypoint.name, mode, str(Path(secret_path).absolute())]
 
 
 def _mechanism() -> dict:
@@ -187,8 +192,9 @@ def qualify(state_root: Path, repository_id: str, repository_path: Path,
             "repository_id": repository_id, "commit_sha": commit_sha,
             "profile_contract": bwrap.PROFILE_CONTRACT,
             "profile_fingerprint": bwrap.profile_fingerprint(),
+            "expected_entrypoint_sha256": TRUSTED_ENTRYPOINT_SHA256,
             "runner_activation": False, "real_agent_qualified": False,
-            "mechanism": mechanism}
+            "deployment_qualified": False, "mechanism": mechanism}
     if not mechanism.get("available"):
         return {**base, "composition_qualified": False, "checks": [],
                 "reason": mechanism.get("reason", "PROFILE_UNAVAILABLE")}
@@ -285,7 +291,11 @@ def qualify(state_root: Path, repository_id: str, repository_path: Path,
             cleanup_ok = False
 
     checks.append({"name": "ownership_bounded_cleanup", "passed": cleanup_ok})
-    qualified = qualified and cleanup_ok
+    check_names = {item.get("name") for item in checks}
+    qualified = (qualified and cleanup_ok
+                 and check_names == REQUIRED_CHECKS
+                 and len(checks) == len(REQUIRED_CHECKS)
+                 and all(item.get("passed") is True for item in checks))
     return {**base, "composition_qualified": qualified,
             "snapshot": snapshot_identity, "entrypoint_sha256": entrypoint_sha,
             "limits": {"memory_mb": bwrap.MEMORY_MB,
@@ -306,7 +316,11 @@ def cli(argv=None) -> int:
         value = qualify(args.state_root, args.repository_id, args.repository_path, args.commit_sha)
     except CompositionError as exc:
         value = {"contract_version": CONTRACT, "composition_qualified": False,
-                 "runner_activation": False, "real_agent_qualified": False,
+                 "deployment_qualified": False, "runner_activation": False,
+                 "real_agent_qualified": False,
+                 "expected_entrypoint_sha256": TRUSTED_ENTRYPOINT_SHA256,
                  "reason": exc.code}
+        if exc.entrypoint_sha256 is not None:
+            value["entrypoint_sha256"] = exc.entrypoint_sha256
     print(json.dumps(value, sort_keys=True, indent=2))
     return 0 if value.get("composition_qualified") else 2

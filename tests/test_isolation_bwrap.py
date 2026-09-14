@@ -35,6 +35,35 @@ class IsolationProfileUnitTests(unittest.TestCase):
                          "BWRAP_FEATURE_UNAVAILABLE")
         self.assertEqual(iso._classify_setup_failure(b"opaque failure"), "SANDBOX_SETUP_FAILED")
 
+    def test_shared_boundary_builder_contains_fixed_security_controls(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            inp, out = root / "input", root / "output"
+            inp.mkdir(); out.mkdir()
+            with mock.patch.object(iso, "_bwrap_executable", return_value=Path("/usr/bin/bwrap")), \
+                    mock.patch.object(iso, "_probe_python"), \
+                    mock.patch.object(iso, "_system_mounts", return_value=["--ro-bind", "/usr", "/usr"]), \
+                    mock.patch.object(iso, "_ordinary_directory", side_effect=lambda path, code: Path(path)):
+                command = iso._boundary_command(inp, out)
+        joined = "\0".join(command)
+        for token in ("--unshare-user", "--disable-userns", "--unshare-pid", "--unshare-net",
+                      "--unshare-ipc", "--unshare-uts", "--clearenv", "--new-session",
+                      "--die-with-parent", "--cap-drop", "--ro-bind", "--bind"):
+            self.assertIn(token, command)
+        self.assertIn("/input", command)
+        self.assertIn("/output", command)
+        self.assertNotIn("--share-net", command)
+        self.assertNotIn("GH_TOKEN", joined)
+        self.assertNotIn("GITHUB_TOKEN", joined)
+
+    def test_standalone_probe_delegates_to_shared_boundary(self):
+        with mock.patch.object(iso, "_boundary_command", return_value=["bwrap", "--fixed"]) as boundary:
+            command = iso.build_command("baseline", Path("/trusted/input"),
+                                        Path("/trusted/output"), Path("/host/secret"))
+        boundary.assert_called_once()
+        self.assertEqual(command[:2], ["bwrap", "--fixed"])
+        self.assertEqual(command[-3:], ["/probe.py", "baseline", str(Path("/host/secret").absolute())])
+
     @unittest.skipUnless(os.name == "posix", "symlink semantics require POSIX")
     def test_input_redirection_is_refused(self):
         with tempfile.TemporaryDirectory() as directory:

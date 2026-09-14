@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+import json
 import os
 from pathlib import Path
 import shutil
@@ -49,21 +51,38 @@ class CompositionTests(unittest.TestCase):
         self.assertFalse(REGISTRY["omp_blind_review_v1"].enabled)
 
     def test_fixed_snapshot_command_has_no_task_authority(self):
-        with mock.patch.object(bwrap, "_bwrap_executable", return_value=Path("/usr/bin/bwrap")), \
-             mock.patch.object(bwrap, "_probe_python"), \
-             mock.patch.object(bwrap, "_system_mounts", return_value=["--ro-bind", "/usr", "/usr"]), \
-             mock.patch.object(bwrap, "_ordinary_directory", side_effect=lambda path, code: Path(path)):
+        with mock.patch.object(bwrap, "_boundary_command",
+                               return_value=["bwrap", "--fixed-boundary"]) as boundary:
             out = self.root / "out"; out.mkdir()
             command = composition._build_command("baseline", self.repo, out, self.root / "secret")
-        joined = "\0".join(command)
+        boundary.assert_called_once_with(self.repo, out)
+        self.assertEqual(command[:2], ["bwrap", "--fixed-boundary"])
         self.assertIn("/input/" + composition.ENTRYPOINT, command)
-        self.assertIn("--unshare-net", command)
-        self.assertIn("--clearenv", command)
-        self.assertNotIn("--share-net", command)
-        for secret in ("GH_TOKEN", "GITHUB_TOKEN", "OPENAI_API_KEY"):
-            self.assertNotIn(secret, joined)
+        self.assertEqual(command[-1], str((self.root / "secret").absolute()))
         with self.assertRaisesRegex(composition.CompositionError, "UNKNOWN_COMPOSITION_PROBE"):
             composition._build_command("arbitrary", self.repo, out, self.root / "secret")
+
+    def test_trusted_probe_digest_matches_repository_fixture(self):
+        self.assertEqual(hashlib.sha256(FIXTURE.read_bytes()).hexdigest(),
+                         composition.TRUSTED_ENTRYPOINT_SHA256)
+
+    def test_substituted_self_reporting_probe_is_refused_before_execution(self):
+        target = self.repo / composition.ENTRYPOINT
+        target.write_text(
+            "from pathlib import Path\n"
+            "Path('/output/report.json').write_text('\"fake\"')\n",
+            encoding="ascii")
+        git(self.repo, "add", composition.ENTRYPOINT)
+        git(self.repo, "commit", "-qm", "substitute probe")
+        commit = git(self.repo, "rev-parse", "HEAD")
+        with mock.patch.object(composition, "_mechanism", return_value={"available": True}), \
+                mock.patch.object(bwrap, "_run_command") as runner:
+            with self.assertRaisesRegex(composition.CompositionError,
+                                        "COMPOSITION_ENTRYPOINT_HASH_MISMATCH"):
+                composition.qualify(self.state.absolute(), "dashminimix",
+                                    self.repo.absolute(), commit)
+        runner.assert_not_called()
+
 
     def test_invalid_identity_and_state_location_fail_before_execution(self):
         with self.assertRaisesRegex(composition.CompositionError, "COMPOSITION_IDENTITY_INVALID"):
@@ -74,6 +93,10 @@ class CompositionTests(unittest.TestCase):
         self.assertFalse(inside.exists())
         with self.assertRaisesRegex(composition.CompositionError, "UNKNOWN_REPOSITORY_IDENTIFIER"):
             composition.qualify(self.state.absolute(), "unknown", self.repo.absolute(), self.commit)
+        trusted_ancestor = composition.Path(__file__).resolve().parents[2]
+        with self.assertRaisesRegex(composition.CompositionError,
+                                    "TRUSTED_CHECKOUT_INSIDE_STATE_ROOT"):
+            composition._private_root(trusted_ancestor, self.repo.absolute())
 
     def test_missing_entrypoint_fails_closed(self):
         (self.repo / composition.ENTRYPOINT).unlink()
@@ -100,6 +123,62 @@ class CompositionTests(unittest.TestCase):
         path.write_bytes(b"{" + b"x" * (composition.MAX_REPORT_BYTES + 1))
         with self.assertRaisesRegex(composition.CompositionError, "COMPOSITION_REPORT_INVALID"):
             composition._report_file(path)
+
+    def test_setup_failure_cannot_qualify_with_incomplete_check_set(self):
+        with mock.patch.object(composition, "_mechanism", return_value={"available": True}), \
+                mock.patch.object(composition, "_build_command", return_value=["fixed"]), \
+                mock.patch.object(bwrap, "_run_command",
+                                  side_effect=bwrap.IsolationError("SANDBOX_SETUP_FAILED")):
+            result = composition.qualify(self.state.absolute(), "dashminimix",
+                                         self.repo.absolute(), self.commit)
+        self.assertFalse(result["composition_qualified"])
+        self.assertTrue(any(item["name"] == "composition_runtime" and not item["passed"]
+                            for item in result["checks"]))
+        self.assertNotEqual({item["name"] for item in result["checks"]},
+                            composition.REQUIRED_CHECKS)
+
+    def test_surviving_descendant_cannot_qualify(self):
+        calls = []
+
+        def fake_run(mode, command, wall):
+            calls.append(mode)
+            out = Path(command[command.index("--bind") + 1])
+            if mode == "baseline":
+                report = {key: True for key in composition.REQUIRED_BASELINE}
+                (out / "report.json").write_text(json.dumps(report, sort_keys=True),
+                                                  encoding="ascii")
+                return {"returncode": 0, "termination": "natural", "stdout": b"",
+                        "stderr": b"", "surviving_descendants": [], "setup_error": None,
+                        "elapsed_ms": 1, "mode": mode}
+            if mode == "flood":
+                return {"returncode": -9, "termination": "output_limit", "stdout": b"",
+                        "stderr": b"", "surviving_descendants": [], "setup_error": None,
+                        "elapsed_ms": 1, "mode": mode}
+            if mode == "hang":
+                return {"returncode": -9, "termination": "timeout", "stdout": b"",
+                        "stderr": b"", "surviving_descendants": [12345], "setup_error": None,
+                        "elapsed_ms": 1, "mode": mode}
+            if mode == "memory":
+                return {"returncode": 42, "termination": "natural", "stdout": b"memory_limited\n",
+                        "stderr": b"", "surviving_descendants": [], "setup_error": None,
+                        "elapsed_ms": 1, "mode": mode}
+            return {"returncode": -24, "termination": "natural", "stdout": b"cpu_probe_ready\n",
+                    "stderr": b"", "surviving_descendants": [], "setup_error": None,
+                    "elapsed_ms": 1, "mode": mode}
+
+        def fake_build(mode, input_root, output_root, secret_path):
+            return ["fixed", "--bind", str(output_root), "/output", mode]
+
+        with mock.patch.object(composition, "_mechanism", return_value={"available": True}), \
+                mock.patch.object(composition, "_build_command", side_effect=fake_build), \
+                mock.patch.object(bwrap, "_run_command", side_effect=fake_run):
+            result = composition.qualify(self.state.absolute(), "dashminimix",
+                                         self.repo.absolute(), self.commit)
+        self.assertEqual(calls, ["baseline", "flood", "hang", "memory", "cpu"])
+        self.assertFalse(result["composition_qualified"])
+        check = next(item for item in result["checks"]
+                     if item["name"] == "deadline_descendant_containment")
+        self.assertFalse(check["passed"])
 
     def test_snapshot_tampering_during_execution_fails_closed(self):
         original = bwrap._run_command
@@ -130,13 +209,15 @@ class CompositionTests(unittest.TestCase):
         self.assertEqual(report["commit_sha"], self.commit)
         self.assertEqual(report["snapshot"]["commit_sha"], self.commit)
         self.assertEqual(report["snapshot"]["file_count"], 1)
+        self.assertEqual(report["expected_entrypoint_sha256"],
+                         composition.TRUSTED_ENTRYPOINT_SHA256)
+        self.assertEqual(report["entrypoint_sha256"], composition.TRUSTED_ENTRYPOINT_SHA256)
         self.assertFalse(report["runner_activation"])
         self.assertFalse(report["real_agent_qualified"])
+        self.assertFalse(report["deployment_qualified"])
         self.assertTrue(all(item["passed"] for item in report["checks"]), report)
-        self.assertEqual({item["name"] for item in report["checks"]}, {
-            "snapshot_filesystem_network_credentials_pid", "output_bound",
-            "deadline_descendant_containment", "memory_limit", "cpu_limit",
-            "snapshot_identity_preserved", "ownership_bounded_cleanup"})
+        self.assertEqual({item["name"] for item in report["checks"]},
+                         composition.REQUIRED_CHECKS)
 
 
 if __name__ == "__main__":

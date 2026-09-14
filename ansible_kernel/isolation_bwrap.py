@@ -135,14 +135,18 @@ def _system_mounts() -> list[str]:
     return args
 
 
-def build_command(mode: str, input_root: Path, output_root: Path, secret_path: Path) -> list[str]:
-    if mode not in MODES:
-        raise IsolationError("UNKNOWN_QUALIFICATION_PROBE")
+def _boundary_command(input_root: Path, output_root: Path,
+                      extra_mounts: tuple[str, ...] = ()) -> list[str]:
+    """Build the fixed qualified Bubblewrap boundary before selecting a trusted probe.
+
+    `extra_mounts` is trusted-code-only internal data. No request/slot surface exposes
+    this helper or its arguments. Both the standalone profile and composition use this
+    exact namespace/environment/mount prefix so the security boundary cannot drift.
+    """
     bwrap = _bwrap_executable()
     _probe_python()
     input_root = _ordinary_directory(input_root, "INPUT_ROOT_INVALID")
     output_root = _ordinary_directory(output_root, "OUTPUT_ROOT_INVALID")
-    secret_path = Path(secret_path).absolute()
     args = [str(bwrap),
             "--unshare-user", "--disable-userns", "--unshare-ipc", "--unshare-pid",
             "--unshare-net", "--unshare-uts", "--unshare-cgroup-try",
@@ -155,12 +159,20 @@ def build_command(mode: str, input_root: Path, output_root: Path, secret_path: P
             "--dir", "/input", "--dir", "/output", "--proc", "/proc", "--dev", "/dev",
             "--tmpfs", "/tmp"]
     args += _system_mounts()
-    args += ["--ro-bind", str(PROBE), "/probe.py",
-             "--ro-bind", str(input_root), "/input",
+    args += list(extra_mounts)
+    args += ["--ro-bind", str(input_root), "/input",
              "--bind", str(output_root), "/output",
-             "--chdir", "/input", "--hostname", "ansible-sandbox",
-             "/usr/bin/python3", "-I", "-S", "-B", "/probe.py", mode, str(secret_path)]
+             "--chdir", "/input", "--hostname", "ansible-sandbox"]
     return args
+
+
+def build_command(mode: str, input_root: Path, output_root: Path, secret_path: Path) -> list[str]:
+    if mode not in MODES:
+        raise IsolationError("UNKNOWN_QUALIFICATION_PROBE")
+    secret_path = Path(secret_path).absolute()
+    args = _boundary_command(input_root, output_root, ("--ro-bind", str(PROBE), "/probe.py"))
+    return args + ["/usr/bin/python3", "-I", "-S", "-B", "/probe.py", mode,
+                   str(secret_path)]
 
 
 def _limit_child() -> None:

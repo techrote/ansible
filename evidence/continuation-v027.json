@@ -1,0 +1,32 @@
+{
+  "claims": {
+    "candidate_publication_authority": false,
+    "deployment_qualified": false,
+    "noop_v1_enabled": true,
+    "omp_blind_review_v1_enabled": false,
+    "real_agent_qualified": false,
+    "runner_activation": false
+  },
+  "composition": {
+    "complete_check_set_required": true,
+    "contract": "ansible.isolation-composition.v1",
+    "linux_profile_fingerprint": "2dc0056cc87719222910bfb109cfe2cc22f22194649d0efdc085c7409ad94c85",
+    "local_live_probe": "not_run_bubblewrap_unavailable",
+    "shared_boundary_builder": true,
+    "trusted_entrypoint_sha256": "f2af54591d9a45fb43418142dc4f1fd582d448108dafec19d48846a9dbcaec21"
+  },
+  "execution_contract": "ansible.execution.v1",
+  "hosted_ci": "pending implementation PR; not asserted by this local report",
+  "implementation_version": "0.2.7",
+  "local_verification": {
+    "platform": "Linux",
+    "python": "3.13.5",
+    "qualification_checks": 43,
+    "qualification_passed": 43,
+    "source_fingerprint": "e6e97008a20314fa06ebcc3bb85dd1c280c12181bafb50462329ee9739b17990",
+    "tests_passed": 301,
+    "tests_run": 305,
+    "tests_skipped": 4
+  },
+  "scope": "issue-38-composition-probe-binding"
+}

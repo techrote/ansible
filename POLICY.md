@@ -23,6 +23,13 @@ execution sandbox. No network, credential, repository test/build, publication,
 VM, arbitrary-path export or live model capability is granted. Adding any of
 these requires a trusted implementation change and its own qualification gate.
 
+The host-only snapshot/isolation composition qualifier is not a runner. Its fixed
+entrypoint must match the trusted probe SHA-256 before execution and it reuses the
+same trusted Bubblewrap namespace/mount/environment builder as `linux-bwrap-v1`.
+A different snapshot program at the fixed filename is refused rather than allowed
+to self-attest boundary checks. Successful composition evidence never grants
+deployment, model, publication or runner authority.
+
 An operator control receipt is not task success or proof of containment.
 Controller exit 0, agent-end markers and clean transport must never establish
 semantic success on their own. Corrupt or interrupted state fails closed.
