@@ -62,7 +62,7 @@ class IsolationProfileUnitTests(unittest.TestCase):
                                         Path("/trusted/output"), Path("/host/secret"))
         boundary.assert_called_once()
         self.assertEqual(command[:2], ["bwrap", "--fixed"])
-        self.assertEqual(command[-3:], ["/probe.py", "baseline", "/host/secret"])
+        self.assertEqual(command[-3:], ["/probe.py", "baseline", str(Path("/host/secret").absolute())])
 
     @unittest.skipUnless(os.name == "posix", "symlink semantics require POSIX")
     def test_input_redirection_is_refused(self):
