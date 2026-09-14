@@ -52,8 +52,11 @@ REQUIRED_CHECKS = frozenset({
 
 
 class CompositionError(RuntimeError):
-    def __init__(self, code: str):
+    def __init__(self, code: str, *, entrypoint_sha256: str | None = None):
         self.code = code
+        if entrypoint_sha256 is not None and re.fullmatch(r"[0-9a-f]{64}", entrypoint_sha256) is None:
+            raise ValueError("invalid bounded composition evidence")
+        self.entrypoint_sha256 = entrypoint_sha256
         super().__init__(code)
 
 
@@ -120,7 +123,8 @@ def _entrypoint(content: Path) -> tuple[Path, str]:
         raise CompositionError("COMPOSITION_ENTRYPOINT_INVALID")
     actual = hashlib.sha256(raw).hexdigest()
     if actual != TRUSTED_ENTRYPOINT_SHA256:
-        raise CompositionError("COMPOSITION_ENTRYPOINT_HASH_MISMATCH")
+        raise CompositionError("COMPOSITION_ENTRYPOINT_HASH_MISMATCH",
+                               entrypoint_sha256=actual)
     return path, actual
 
 
@@ -312,7 +316,11 @@ def cli(argv=None) -> int:
         value = qualify(args.state_root, args.repository_id, args.repository_path, args.commit_sha)
     except CompositionError as exc:
         value = {"contract_version": CONTRACT, "composition_qualified": False,
-                 "runner_activation": False, "real_agent_qualified": False,
+                 "deployment_qualified": False, "runner_activation": False,
+                 "real_agent_qualified": False,
+                 "expected_entrypoint_sha256": TRUSTED_ENTRYPOINT_SHA256,
                  "reason": exc.code}
+        if exc.entrypoint_sha256 is not None:
+            value["entrypoint_sha256"] = exc.entrypoint_sha256
     print(json.dumps(value, sort_keys=True, indent=2))
     return 0 if value.get("composition_qualified") else 2
