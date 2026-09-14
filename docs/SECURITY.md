@@ -101,3 +101,14 @@ Maintain OMP-specific parsing in Ohmy, not this kernel.
 
 These references describe OS/API behavior. Repository tests and host reports,
 not the existence of these APIs, establish implementation qualification.
+
+### Pinned snapshot execution composition
+
+Implementation 0.2.6 adds `ansible.isolation-composition.v1`, a qualification-only
+bridge from the exact inert snapshot materializer to the Linux Bubblewrap profile.
+It has no wire/slot registration and executes only the fixed
+`ansible_sandbox_probe.py` filename from a verified commit. The snapshot is mounted
+read-only; only a host-created result directory is writable. Full snapshot identity
+is reverified after every adversarial mode and ownership-bound cleanup is required.
+Hosted fixture qualification is not a live-agent/model or deployment-host claim.
+See `docs/ISOLATION-COMPOSITION.md`.

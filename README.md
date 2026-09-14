@@ -4,7 +4,7 @@ A small local execution substrate beneath Omnipanel, **not** the Red Hat Ansible
 project. Omnipanel owns orchestration. Ohmy owns provider-specific normalization.
 Ansible owns admission, fixed runner selection, execution lifecycle and evidence.
 
-**Implementation 0.2.5 / `ansible.execution.v1` / trusted-noop-only profile.**
+**Implementation 0.2.6 / `ansible.execution.v1` / trusted-noop-only profile.**
 The enabled runner is `noop_v1`. `omp_blind_review_v1` is deliberately disabled;
 requests for it return `RUNNER_NOT_QUALIFIED`. This is working kernel code, not a
 production sandbox for agents or arbitrary repository code. See
@@ -48,6 +48,10 @@ Implementation 0.2.4 qualified the Linux Bubblewrap profile. Implementation 0.2.
 adds [cross-platform isolation reporting](docs/ISOLATION-PROFILES.md) and the fixed
 Windows Sandbox configuration/capability probe. Windows remains unqualified until
 a live negative probe succeeds on an actual supported host.
+Implementation 0.2.6 adds the host-only [pinned snapshot → Linux isolation
+composition qualification](docs/ISOLATION-COMPOSITION.md). It executes only a fixed
+qualification entrypoint from an exact inert snapshot; it does not register or
+enable a real-agent runner.
 
 ```powershell
 py -3 -I -S -B run_kernel.py config
