@@ -65,13 +65,18 @@ Artifact ZIP SHA-256 values:
 - Ubuntu 3.13: `e2f119f53d1527afffb5ccb62fcc0cc227b1e4fb82790f7c56a69482e3703f8f`
 - Windows 3.13: `157094fc9fc29418e5c8d6a605e0a493afb65b534e054389315f7b2aa21a2226`
 
-The first post-merge Windows 3.13 attempt later hit the existing direct Job Object
-CPU-limit test's 8-second external wall watchdog while waiting for one CPU-second of
-user time on a hosted runner. The exact final PR head had already passed this test;
-43/43 semantic qualification and the PowerShell smoke also passed in the affected
-post-merge job. The failed job was rerun separately to distinguish host starvation
-from a repeatable runtime defect; consult workflow `34886336984` when assessing that
-post-merge retry rather than treating the first attempt as a composition failure.
+## Post-merge CI note
+
+Post-merge workflow `34886336984` initially had one Windows/Python 3.13 unit-test
+error: the pre-existing direct Job Object CPU-limit test's external 8-second wall
+watchdog expired while waiting for the process to accumulate its configured one
+second of user CPU time. The same exact bytes had passed that test in the final PR
+run; the affected first-attempt job still passed 43/43 kernel qualification and the
+PowerShell 5.1 smoke. GitHub job `104117812923` was rerun without source changes as
+job `104118877111`; the rerun completed successfully, including the full 308-test
+suite. The other three post-merge jobs passed on their initial attempt. Treat this as
+a transient hosted-runner scheduling/watchdog event, not as a composition or runtime
+semantic failure.
 
 ## Completed external slot migration
 
