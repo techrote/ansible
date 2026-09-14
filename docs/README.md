@@ -10,6 +10,7 @@
 - [CI evidence bundles](CI-EVIDENCE.md): retained reports, source/provenance/checksums and interpretation.
 
 - [Fixed-origin slot transport](SLOT-TRANSPORT.md): opt-in data-only fetch, provenance, bounds and the separate producer/deployment gate #16.
+- [Intrallm slot migration preview](INTRALLM-SLOT-MIGRATION.md): validated generation-2 idle candidate and the remaining authorized producer/deployment gate.
 
 - [Job-bound evidence](EVIDENCE-BINDING.md): terminal anchors, legacy compatibility and success revalidation.
 - [Ohmy readiness](OHMY-INTEGRATION-READINESS.md): pinned upstream inspection and remaining adapter gates.
@@ -24,7 +25,6 @@
 Their older test counts/fingerprints are not substitutes for current qualification.
 Machine-readable versioned evidence is under `../evidence/`.
 
-Parent issue #1 remains open. The transport implementation is now documented above; live producer/deployment
-acceptance remains #16. Other next work is #13 (actual execution isolation after inert snapshot preparation) and #14 (Ohmy adapter qualification).
+Parent issue #1 remains open. Isolation and adapter preparation issues #13 and #14 are closed; the remaining external integration gate is #16 producer migration and authenticated deployment.
 Only noop execution is enabled today; a green test suite is not permission to
 activate unqualified runners.

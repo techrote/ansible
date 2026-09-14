@@ -1,0 +1,119 @@
+{
+  "authenticated_remote_refresh_performed": false,
+  "connector_read_only_observation": {
+    "blob_shas": [
+      "5fc85cdebc456290634e9bf71a0ed42210d55499",
+      "f40be08f6f472988ceb37d4572d74551147950d1",
+      "c9e60abf713fec274529337d8744a270060e86ed",
+      "5e809dd3390804153be7d424d2282b8567f2951a"
+    ],
+    "commit_sha": "67a55d339863f603d333c7a327cd2eb7cb1f54b5",
+    "legacy_generations": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "legacy_schema_rejected_without_translation": true,
+    "observation_requires_recheck_before_publication": true,
+    "ref": "refs/heads/control/launcher-slots",
+    "repository": "techrote/intrallm"
+  },
+  "contract_version": "ansible.intrallm-slot-migration-preview.v1",
+  "credential_used": false,
+  "deployment_generation_check_required": true,
+  "files": [
+    {
+      "blob_sha": "cdfbcb8e452bcc4e0193314a0604f1da87a9bc20",
+      "bytes": 116,
+      "content_sha256": "674ea596f693083a3a09a5ba84320f6a3c727399a11fe8877947b7f7a2766e7c",
+      "path": "slots/slot1.json",
+      "value": {
+        "generation": 2,
+        "label": "Idle",
+        "schema_version": 1,
+        "slot": 1,
+        "state": "idle",
+        "task_id": "slot-1-intrallm-migration-g2"
+      },
+      "value_sha256": "09642d6504e68fbfa86b4b751a5d0487dfb1d7adb0a2a0ffa794826f892ea876"
+    },
+    {
+      "blob_sha": "6ae70dc852b1657a43f04b9e05e912d61be95619",
+      "bytes": 116,
+      "content_sha256": "141c9f161c0b787b42deeda50058944fb8ee358417af2b77fb6118eba8fee5cf",
+      "path": "slots/slot2.json",
+      "value": {
+        "generation": 2,
+        "label": "Idle",
+        "schema_version": 1,
+        "slot": 2,
+        "state": "idle",
+        "task_id": "slot-2-intrallm-migration-g2"
+      },
+      "value_sha256": "2b68e574a53a89bb7c3992654e1f1f4a693798bfd42dfc014227657e465609e8"
+    },
+    {
+      "blob_sha": "919d5c010ed7a7e0041502f743c32e2eddf4ed17",
+      "bytes": 116,
+      "content_sha256": "5a9c34a96c1a554b00076550023c7d202b1418bf68e27cbc11aa9b10ed6d1e65",
+      "path": "slots/slot3.json",
+      "value": {
+        "generation": 2,
+        "label": "Idle",
+        "schema_version": 1,
+        "slot": 3,
+        "state": "idle",
+        "task_id": "slot-3-intrallm-migration-g2"
+      },
+      "value_sha256": "e1fb1dbe21ff0206457ebd74fc31a3a812c2baab16f040ddd264fb8f2a04c18e"
+    },
+    {
+      "blob_sha": "9002d06afaa6a6548beb55019838ae7a9b0cd1aa",
+      "bytes": 116,
+      "content_sha256": "bb784d4b3d6026eb42113d4950657a515c1a5c2612d0561b031cdcc6f3d616b8",
+      "path": "slots/slot4.json",
+      "value": {
+        "generation": 2,
+        "label": "Idle",
+        "schema_version": 1,
+        "slot": 4,
+        "state": "idle",
+        "task_id": "slot-4-intrallm-migration-g2"
+      },
+      "value_sha256": "0592c438abe4319cfedf14972be54e44bfa28fca0415f9c8c1302e537a63cacf"
+    }
+  ],
+  "generation": 2,
+  "producer_write_performed": false,
+  "publication_simulation": {
+    "all_current_slots_idle": true,
+    "baseline_generations": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "baseline_once_completed": true,
+    "current_generations": [
+      2,
+      2,
+      2,
+      2
+    ],
+    "first_refresh_changed": true,
+    "generation_1_once_preserved": true,
+    "generation_1_once_reserved_before": true,
+    "repeat_refresh_changed": false,
+    "repeat_refresh_ledger_unchanged": true
+  },
+  "recorded_repository_generation_floor": 1,
+  "transport_preview": {
+    "attestation": "synthetic_in_memory_git_graph",
+    "fixed_reads": 8,
+    "provenance_contract": "ansible.slot-source.v1",
+    "root_tree_sha": "13bebdad5a947448418096293a6bb1d5f08afee1",
+    "slots_digest": "b72aebe2e67e1925d9b729f7c7671d5384b0b6492bbed703586b2467939d96b8",
+    "slots_tree_sha": "c69d92180b201b0190edc3766fb087250413a884"
+  }
+}
