@@ -41,6 +41,18 @@
     "workflow_jobs_total": 4,
     "workflow_run": 34885939297
   },
+  "post_merge_verification": {
+    "initial_windows_python_3_13_job": 104117812923,
+    "initial_windows_python_3_13_result": "unit_test_watchdog_timeout_after_8_wall_seconds",
+    "kernel_qualification_passed_on_initial_attempt": true,
+    "other_three_jobs_initial_attempt": "success",
+    "powershell_smoke_passed_on_initial_attempt": true,
+    "rerun_source_changed": false,
+    "rerun_tests": 308,
+    "rerun_windows_python_3_13_job": 104118877111,
+    "rerun_windows_python_3_13_result": "success",
+    "workflow_run": 34886336984
+  },
   "historical_pre_final_local_record": {
     "file": "evidence/continuation-v027.json",
     "note": "Preserved as the pre-final-audit local snapshot. Its 305-test count and e6e970... fingerprint predate the refusal-evidence fix and are not the merged 0.2.7 identity."
