@@ -15,6 +15,7 @@
 - [Job-bound evidence](EVIDENCE-BINDING.md): terminal anchors, legacy compatibility and success revalidation.
 - [Ohmy readiness](OHMY-INTEGRATION-READINESS.md): pinned upstream inspection and remaining adapter gates.
 - [Pinned inert snapshots](PINNED-SNAPSHOTS.md): exact Git object materialization, ownership-safe cleanup and unqualified future isolation profiles.
+- [Snapshot/isolation composition](ISOLATION-COMPOSITION.md): exact snapshot → trusted probe → Linux Bubblewrap qualification and probe-hash binding.
 
 ## Historical evidence
 
@@ -25,6 +26,6 @@
 Their older test counts/fingerprints are not substitutes for current qualification.
 Machine-readable versioned evidence is under `../evidence/`.
 
-Parent issue #1 remains open. Isolation and adapter preparation issues #13 and #14 are closed; the remaining external integration gate is #16 producer migration and authenticated deployment.
+Parent issue #1 remains open. Issues #13, #14 and #32 are completed prerequisites; issue #38 hardens reusable composition evidence, while the remaining external integration gate is #16 producer migration and authenticated deployment.
 Only noop execution is enabled today; a green test suite is not permission to
 activate unqualified runners.

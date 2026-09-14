@@ -1,24 +1,35 @@
-# Continuation handover — 2026-09-13
+# Continuation handover — 2026-09-14
 
-## Current continuation: 0.2.3
+## Current continuation: 0.2.7
 
-Main before issue #22 work is merged v0.2.2 commit
-`80fa588842ada7966fe7a5cb4ec65cf93acebcf4`. Issue #20 / PR #21 added the
-disabled pinned Ohmy conformance seam after a corrected four-job hosted matrix;
-only `noop_v1` remains enabled and `real_agent_qualified=false`. Issue #14 therefore
-remains a live/stable adapter qualification gate, not a fixture-completeness task.
+Implementation 0.2.7 is the issue #38 hardening follow-up to PR #37. PR #37's
+hosted Ubuntu composition evidence remains valid for the exact trusted fixture used by CI;
+`omp_blind_review_v1` remains disabled and `real_agent_qualified=false`.
 
-Issue #22 is the non-executing preparation slice of #13. The trusted snapshot
-preparer reads exact local commit/tree/blob objects from the fixed repository
-registry without checkout, hooks, filters, submodules, LFS or network access. It
-publishes verified ownership-marked bytes beneath private Ansible state and permits
-only identity-derived verified cleanup. See [PINNED-SNAPSHOTS.md](PINNED-SNAPSHOTS.md).
-This does not qualify hostile-code execution; #13 remains open for actual filesystem,
-network and credential isolation plus deployment-host negative tests.
+The post-merge audit identified one reusable-qualifier validity gap: the host-only
+composition API recorded the snapshot entrypoint SHA-256 but did not require it to
+match trusted hostile-fixture bytes. Issue #38 / implementation 0.2.7 binds that
+entrypoint to the trusted digest and makes standalone/composed Linux isolation share
+one fixed Bubblewrap boundary builder, eliminating duplicated namespace/mount policy.
+It also requires the exact complete composition check set and refuses a state root
+that contains the trusted checkout. No runner, provider, model or publication authority
+is added. See [ISOLATION-COMPOSITION.md](ISOLATION-COMPOSITION.md).
 
-Issue #12's transport is implemented, but producer migration/authenticated
-deployment remains #16 because the inspected intrallm producer still uses retired
-slot data. No other repository is modified by the #22 snapshot work.
+Final local verification for the #38 tree is **305 tests: 301 passed, 4 explicit
+platform/mechanism skips**, plus **43/43** kernel qualification checks. Runtime
+fingerprint is `e6e97008a20314fa06ebcc3bb85dd1c280c12181bafb50462329ee9739b17990`.
+Because the local container lacks Bubblewrap, the changed isolation profile and
+composition must both re-pass real hosted Linux qualification before merge.
+
+Issue #31 / merged PR #36 already prepared the #16 `intrallm` producer migration
+offline without cross-repository authority. Generation-2 idle payloads pass production
+schema/transport preview and idempotence simulation, but #16 still requires explicit
+permission to modify `techrote/intrallm`, a real deployment-ledger generation check,
+and authenticated deployment-host refresh/provenance verification.
+
+Issues #13, #14 and #32 are completed prerequisites; #38 is a fail-closed hardening
+follow-up. Parent #1 remains open behind #16 and any current hardening work. Only
+`noop_v1` is enabled.
 
 ## Transport continuation
 
@@ -107,15 +118,12 @@ verified termination. See [query contract](QUERY-CONTRACT.md).
 | Open issue | What can proceed | Gate which must remain closed |
 |---|---|---|
 | #16 — producer migration and deployment | Authorized data-only producer migration and actual authenticated acceptance of the implemented transport | No implicit producer writes, generation translation or claim of live qualification from fixtures |
-| #13 — isolation and pinned worktrees | Select/implement an actual supported provider profile; test worktree ownership/provenance/cleanup and hostile-code restrictions | No arbitrary candidate pytest/build or real-agent execution before proven isolation |
-| #14 — Ohmy adapter | Read/pin the actual current upstream contract; develop disabled adapter conformance fixtures alongside #12/#13 | Enable OMP only after isolation, required input provenance and runner-specific live outcome/evidence acceptance |
 
-Those issues contain implementation prompts, scope and acceptance tests. Transport
-is not blocked on the live adapter, and adapter fixture development is not blocked
-on transport. Real-runner activation remains serialized behind all applicable
-profile/provenance/semantic gates. No current source or CI report proves that a
-model performed a review. VM providers and general candidate publication/export
-also remain outside the current implemented profile.
+Issues #13, #14 and #32 are completed prerequisites. Issue #38 hardens reusable
+composition evidence without activating a runner. Real-runner activation remains
+closed; no current source or CI report proves that a model performed a review. VM
+providers and general candidate publication/export also remain outside the current
+implemented profile.
 
 Qualification of the user's own Windows installation is separate from hosted CI.
 The current noop commands are available for that host-specific verification; this

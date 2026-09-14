@@ -1,3 +1,29 @@
+# Kernel continuation release notes
+
+## 0.2.7 — trusted composition probe binding and shared Bubblewrap boundary
+
+Issue #38 hardens the reusable host-only composition qualifier after the valid hosted
+#32 fixture qualification. The fixed snapshot entrypoint now must match trusted
+SHA-256 `f2af54591d9a45fb43418142dc4f1fd582d448108dafec19d48846a9dbcaec21`;
+a different program at the fixed filename is rejected before execution. This prevents
+an operator-selected exact commit from replacing the hostile fixture with a program
+that simply self-reports baseline booleans.
+
+Standalone `linux-bwrap-v1` and composition now share one internal trusted boundary
+builder for namespace, environment and mount controls, while retaining the existing
+resource/process supervisor. The profile implementation fingerprint changes and must
+therefore pass the live hosted Bubblewrap qualification again before merge. Qualification
+also requires the exact complete seven-check composition set; setup failures or omitted
+checks cannot qualify by omission. State roots may not contain the trusted checkout.
+
+Local Linux/Python 3.13.5 verification: **305 tests, 301 passed, 4 explicit skips**,
+**43/43** kernel qualification checks, runtime fingerprint
+`e6e97008a20314fa06ebcc3bb85dd1c280c12181bafb50462329ee9739b17990`.
+The local container has no Bubblewrap; live standalone/composed proof is deliberately
+pending hosted CI. `runner_activation=false`, `deployment_qualified=false` and
+`real_agent_qualified=false` remain unchanged.
+
+
 ## 0.2.6 — pinned snapshot → Linux sandbox composition qualification
 
 - Adds host-only `ansible.isolation-composition.v1`; no runner registration or task-facing command surface.
@@ -5,8 +31,6 @@
 - Revalidates snapshot identity after every mode; proves output/deadline/descendant/memory/CPU controls and ownership-bounded cleanup.
 - Retains `isolation-composition.json` as fixed CI evidence on Linux.
 - Keeps `omp_blind_review_v1` disabled, `runner_activation=false`, and `real_agent_qualified=false`.
-
-# Kernel continuation release notes
 
 ## 0.2.3 — pinned inert repository snapshots
 

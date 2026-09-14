@@ -104,11 +104,13 @@ not the existence of these APIs, establish implementation qualification.
 
 ### Pinned snapshot execution composition
 
-Implementation 0.2.6 adds `ansible.isolation-composition.v1`, a qualification-only
-bridge from the exact inert snapshot materializer to the Linux Bubblewrap profile.
-It has no wire/slot registration and executes only the fixed
-`ansible_sandbox_probe.py` filename from a verified commit. The snapshot is mounted
-read-only; only a host-created result directory is writable. Full snapshot identity
-is reverified after every adversarial mode and ownership-bound cleanup is required.
-Hosted fixture qualification is not a live-agent/model or deployment-host claim.
-See `docs/ISOLATION-COMPOSITION.md`.
+Implementation 0.2.7 hardens `ansible.isolation-composition.v1`, the qualification-only
+bridge from exact inert snapshots to the Linux Bubblewrap profile. It has no wire/slot
+registration. The fixed `ansible_sandbox_probe.py` snapshot entrypoint must match the
+trusted SHA-256 before execution; a substituted program cannot self-report successful
+boundary checks. Composition and standalone Linux qualification use one shared trusted
+Bubblewrap namespace/mount/environment builder and the same resource/process supervisor.
+The snapshot is mounted read-only; only a host-created result directory is writable.
+Full snapshot identity is reverified after every adversarial mode and ownership-bound
+cleanup is required. Hosted fixture qualification is not a live-agent/model or
+deployment-host claim. See `docs/ISOLATION-COMPOSITION.md`.
