@@ -15,28 +15,31 @@ It also requires the exact complete composition check set and refuses a state ro
 that contains the trusted checkout. No runner, provider, model or publication authority
 is added. See [ISOLATION-COMPOSITION.md](ISOLATION-COMPOSITION.md).
 
-Final local verification for the #38 tree is **305 tests: 301 passed, 4 explicit
-platform/mechanism skips**, plus **43/43** kernel qualification checks. Runtime
-fingerprint is `e6e97008a20314fa06ebcc3bb85dd1c280c12181bafb50462329ee9739b17990`.
-Because the local container lacks Bubblewrap, the changed isolation profile and
-composition must both re-pass real hosted Linux qualification before merge.
+Local verification for the #38 implementation tree is **305 tests: 301 passed,
+4 explicit platform/mechanism skips**, plus **43/43** kernel qualification checks.
+Runtime fingerprint is `e6e97008a20314fa06ebcc3bb85dd1c280c12181bafb50462329ee9739b17990`.
+Because the local container lacks Bubblewrap, every final #38 head must still pass the
+real hosted Linux standalone and composed qualifications before merge.
 
-Issue #31 / merged PR #36 already prepared the #16 `intrallm` producer migration
-offline without cross-repository authority. Generation-2 idle payloads pass production
-schema/transport preview and idempotence simulation, but #16 still requires explicit
-permission to modify `techrote/intrallm`, a real deployment-ledger generation check,
-and authenticated deployment-host refresh/provenance verification.
+Issue #16 is now completed. `techrote/intrallm` PR #1 migrated exactly the four slot
+JSON files on `control/launcher-slots` to current-schema idle generation 2 and merged
+as producer commit `20117f4601a5a553184452daf80f78089bbd2608`. The real Windows
+deployment was observed at generation 1 before refresh, accepted generation 2 through
+the authenticated opt-in transport, retained exact `ansible.slot-source.v1` provenance,
+and returned `changed=false` on repeated authenticated refresh. The trusted Ansible
+checkout remained clean. No runner was enabled and no credential was persisted.
 
-Issues #13, #14 and #32 are completed prerequisites; #38 is a fail-closed hardening
-follow-up. Parent #1 remains open behind #16 and any current hardening work. Only
-`noop_v1` is enabled.
+Issues #13, #14, #16 and #32 are completed prerequisites; #38 is a fail-closed
+hardening follow-up. Parent #1 remains open for later orchestration/live-runner work.
+Only `noop_v1` is enabled.
 
 ## Transport continuation
 
 Implementation 0.2.0 adds the opt-in transport described in
-[SLOT-TRANSPORT.md](SLOT-TRANSPORT.md). Issue #12's code is implemented; actual
-producer migration and live authenticated deployment are tracked in #16.
-The producer currently uses the retired schema and is intentionally refused.
+[SLOT-TRANSPORT.md](SLOT-TRANSPORT.md). Issue #16 subsequently completed the producer
+migration and real authenticated deployment acceptance. The effective remote slot set is
+current-schema generation 2 and idle for all four slots, pinned by deployment provenance
+to producer commit `20117f4601a5a553184452daf80f78089bbd2608`.
 Only noop execution remains enabled. The following v0.1.5 section preserves the
 previous completed run; use current `contract`/`qualify` output for source identity.
 
@@ -115,19 +118,18 @@ verified termination. See [query contract](QUERY-CONTRACT.md).
 
 ## Next work and dependency boundaries
 
-| Open issue | What can proceed | Gate which must remain closed |
-|---|---|---|
-| #16 — producer migration and deployment | Authorized data-only producer migration and actual authenticated acceptance of the implemented transport | No implicit producer writes, generation translation or claim of live qualification from fixtures |
-
-Issues #13, #14 and #32 are completed prerequisites. Issue #38 hardens reusable
-composition evidence without activating a runner. Real-runner activation remains
-closed; no current source or CI report proves that a model performed a review. VM
-providers and general candidate publication/export also remain outside the current
-implemented profile.
+The external producer/deployment gate is complete. Issue #38 is the active local
+hardening slice; after it merges, parent #1 remains open for later integration work.
+Real-runner activation remains closed until the applicable Ohmy/live outcome,
+isolation and evidence gates are satisfied. No current source or CI report proves that
+a model performed a review. VM providers and general candidate publication/export
+also remain outside the current implemented profile.
 
 Qualification of the user's own Windows installation is separate from hosted CI.
-The current noop commands are available for that host-specific verification; this
-continuation did not operate the user's desktop or certify its environment.
+The authenticated slot-transport deployment has been exercised there, but Windows
+hostile-code isolation remains unqualified because the hosted Windows environment does
+not expose the Sandbox CLI and no supported deployment-host negative qualification has
+been recorded.
 
 ## Evidence and review entry points
 
