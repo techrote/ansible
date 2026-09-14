@@ -28,8 +28,16 @@ jobs:
         shell: bash
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends bubblewrap
+          sudo apt-get install -y --no-install-recommends bubblewrap apparmor-profiles apparmor-utils
+          if ! sudo aa-status 2>/dev/null | grep -Eq '^\s*(bwrap|unpriv_bwrap)\s*$'; then
+            if [ ! -e /etc/apparmor.d/bwrap-userns-restrict ]; then
+              test -f /usr/share/apparmor/extra-profiles/bwrap-userns-restrict
+              sudo install -m 0644 /usr/share/apparmor/extra-profiles/bwrap-userns-restrict /etc/apparmor.d/bwrap-userns-restrict
+            fi
+            sudo apparmor_parser -r /etc/apparmor.d/bwrap-userns-restrict
+          fi
           bwrap --version
+          bwrap --unshare-user --disable-userns --unshare-pid --unshare-net --ro-bind / / -- /bin/true
       - name: Unit, semantic and real process tests
         run: python -I -S -B tools/ci_evidence.py tests
       - name: Qualify this host and source fingerprint

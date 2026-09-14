@@ -85,6 +85,36 @@ def _probe_python() -> Path:
     return path
 
 
+def _classify_setup_failure(stderr: bytes) -> str:
+    text = stderr[:8192].decode("utf-8", errors="replace").lower()
+    if any(token in text for token in (
+        "no permissions to create new namespace", "creating new namespace failed",
+        "operation not permitted", "permission denied", "failed rtm_newaddr",
+        "user namespace", "uid map", "gid map")):
+        return "USER_NAMESPACE_DENIED"
+    if any(token in text for token in ("unknown option", "unrecognized option", "invalid option")):
+        return "BWRAP_FEATURE_UNAVAILABLE"
+    if any(token in text for token in ("bind mount", "no such file or directory", "mount source")):
+        return "SANDBOX_MOUNT_SETUP_FAILED"
+    return "SANDBOX_SETUP_FAILED"
+
+
+def _namespace_smoke(bwrap: Path) -> str | None:
+    command = [str(bwrap), "--unshare-user", "--disable-userns", "--unshare-pid",
+               "--unshare-net", "--unshare-ipc", "--unshare-uts", "--cap-drop", "ALL",
+               "--new-session", "--die-with-parent", "--ro-bind", "/", "/", "--",
+               "/bin/true"]
+    try:
+        result = subprocess.run(command, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE, env={"LANG": "C", "LC_ALL": "C"},
+                                timeout=3, check=False)
+    except (OSError, subprocess.TimeoutExpired):
+        return "BWRAP_NAMESPACE_SMOKE_FAILED"
+    if result.returncode != 0:
+        return _classify_setup_failure(result.stderr)
+    return None
+
+
 def _system_mounts() -> list[str]:
     if not Path("/usr").is_dir():
         raise IsolationError("SYSTEM_RUNTIME_UNAVAILABLE")
@@ -162,6 +192,25 @@ def _descendants(pid: int) -> set[int]:
     return found
 
 
+def _pid_alive(pid: int) -> bool:
+    path = Path(f"/proc/{pid}/stat")
+    try:
+        text = path.read_text(encoding="ascii")
+        state = text.rsplit(")", 1)[1].split()[0]
+        return state != "Z"
+    except (OSError, IndexError):
+        return False
+
+
+def _survivors(pids: set[int]) -> list[int]:
+    deadline = time.monotonic() + 1.0
+    alive = [pid for pid in pids if _pid_alive(pid)]
+    while alive and time.monotonic() < deadline:
+        time.sleep(0.02)
+        alive = [pid for pid in pids if _pid_alive(pid)]
+    return sorted(alive)
+
+
 def _kill_group(process: subprocess.Popen) -> None:
     if process.poll() is not None:
         return
@@ -205,9 +254,10 @@ def _run(mode: str, input_root: Path, output_root: Path, secret_path: Path,
             raise IsolationError("SANDBOX_TERMINATION_FAILED") from exc
     stdout = stdout_capture.finish()
     stderr = stderr_capture.finish()
-    survivors = sorted(pid for pid in observed_descendants if Path(f"/proc/{pid}").exists())
     return {"mode": mode, "returncode": process.returncode, "termination": termination,
-            "stdout": stdout, "stderr": stderr, "surviving_descendants": survivors,
+            "stdout": stdout, "stderr": stderr,
+            "setup_error": _classify_setup_failure(stderr) if process.returncode not in (0, 42, 43, -9, -24) and stderr else None,
+            "surviving_descendants": _survivors(observed_descendants),
             "elapsed_ms": int((time.monotonic() - started) * 1000)}
 
 
@@ -226,6 +276,9 @@ def availability() -> dict:
         max_userns = Path("/proc/sys/user/max_user_namespaces")
         if not max_userns.exists() or int(max_userns.read_text(encoding="ascii").strip()) < 2:
             raise IsolationError("USER_NAMESPACE_UNAVAILABLE")
+        smoke_error = _namespace_smoke(bwrap)
+        if smoke_error:
+            raise IsolationError(smoke_error)
         return {"profile_contract": PROFILE_CONTRACT, "available": True,
                 "platform": platform.system(), "kernel": platform.release(),
                 "bwrap_path": str(bwrap), "bwrap_version": version.stdout.decode("ascii", errors="strict").strip()}
@@ -240,7 +293,7 @@ def qualify(state_root: Path) -> dict:
               "implementation_version": VERSION, "profile_fingerprint": profile_fingerprint(),
               "real_agent_qualified": False, **available}
     if not available.get("available"):
-        return {**report, "profile_qualified": False, "checks": []}
+        return {**report, "profile_qualified": False, "checks": [], "runner_activation": False}
     root = Path(state_root).absolute()
     root.mkdir(parents=True, mode=0o700, exist_ok=True)
     if os.name == "posix":
@@ -260,10 +313,18 @@ def qualify(state_root: Path) -> dict:
             return _run(mode, input_root, out, secret, wall), out
 
         baseline, out = run_mode("baseline")
+        if not (out / "report.json").is_file():
+            checks.append({"name": "filesystem_network_credentials_pid", "passed": False,
+                           "reason": baseline.get("setup_error") or "BASELINE_REPORT_MISSING"})
+            return {**report, "profile_qualified": False, "checks": checks,
+                    "runner_activation": False}
         try:
             observed = decode((out / "report.json").read_bytes())
-        except Exception as exc:
-            raise IsolationError("BASELINE_REPORT_INVALID") from exc
+        except Exception:
+            checks.append({"name": "filesystem_network_credentials_pid", "passed": False,
+                           "reason": "BASELINE_REPORT_INVALID"})
+            return {**report, "profile_qualified": False, "checks": checks,
+                    "runner_activation": False}
         required = ("input_read", "input_write_blocked", "host_secret_blocked", "credential_env_absent",
                     "network_blocked", "home_private", "pid_namespace", "child_confined_write")
         baseline_ok = baseline["returncode"] == 0 and baseline["termination"] == "natural" and all(observed.get(k) is True for k in required)

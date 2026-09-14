@@ -34,6 +34,28 @@ Primary mechanism references consulted 2026-09-14:
 
 - https://manpages.debian.org/unstable/bubblewrap/bwrap.1.en.html
 - https://github.com/containers/bubblewrap/blob/main/README.md
+- https://github.com/ubuntu/ubuntu-release-notes/blob/main/docs/24.04/index.md
+
+## Host prerequisites
+
+The profile is **fail closed** unless the Bubblewrap binary can actually create its
+required namespaces. Merely installing `bwrap` is insufficient. `availability`
+performs a fixed namespace smoke test before reporting `available=true`.
+
+Ubuntu 24.04 enables AppArmor restrictions on unprivileged user namespaces. Do not
+globally disable that security feature merely to make this profile pass. A supported
+host should provide an AppArmor policy granting `/usr/bin/bwrap` the required
+user-namespace operation while retaining the restriction for sandbox children.
+On Noble systems where it is not already installed/loaded, Ubuntu's experimental
+`apparmor-profiles` package supplies `bwrap-userns-restrict` under
+`/usr/share/apparmor/extra-profiles/`; install it as `/etc/apparmor.d/bwrap-userns-restrict`
+and load it with `apparmor_parser`. CI performs this explicit host provisioning
+before qualification. If a bwrap policy is already active, CI does not overwrite it.
+
+If the namespace smoke still fails, the profile reports a typed unavailability such
+as `USER_NAMESPACE_DENIED`, `BWRAP_FEATURE_UNAVAILABLE`, or
+`SANDBOX_MOUNT_SETUP_FAILED`; it does not silently fall back to an unrestricted
+process provider.
 
 ## Qualification
 
@@ -64,11 +86,12 @@ on GitHub-hosted Ubuntu does not qualify another Linux installation.
 
 ## Explicit non-goals / remaining #13 gates
 
-This profile trusts the host kernel and the reviewed Bubblewrap binary. It is not a
-VM boundary and does not claim resistance to a kernel exploit. It does not yet
-execute candidate code in production: the fixed probe is the only executable wired
-to this profile. Composition with #22 pinned snapshots and an actual registered
-runner remains separately gated by #14 success/evidence semantics.
+This profile trusts the host kernel, the reviewed Bubblewrap binary and the
+host's namespace security policy. It is not a VM boundary and does not claim
+resistance to a kernel exploit. It does not yet execute candidate code in
+production: the fixed probe is the only executable wired to this profile.
+Composition with #22 pinned snapshots and an actual registered runner remains
+separately gated by #14 success/evidence semantics.
 
 Windows is deliberately unsupported by `linux_bwrap_v1`; there is no fallback to
 the Job Object provider. Windows Sandbox remains a separate #13 qualification gate.

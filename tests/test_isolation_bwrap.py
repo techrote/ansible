@@ -28,6 +28,13 @@ class IsolationProfileUnitTests(unittest.TestCase):
         self.assertFalse(value["available"])
         self.assertEqual(value["reason"], "PROFILE_PLATFORM_UNSUPPORTED")
 
+    def test_setup_failure_classifier_is_bounded_and_typed(self):
+        self.assertEqual(iso._classify_setup_failure(b"bwrap: Creating new namespace failed: Operation not permitted"),
+                         "USER_NAMESPACE_DENIED")
+        self.assertEqual(iso._classify_setup_failure(b"bwrap: unknown option --future"),
+                         "BWRAP_FEATURE_UNAVAILABLE")
+        self.assertEqual(iso._classify_setup_failure(b"opaque failure"), "SANDBOX_SETUP_FAILED")
+
     @unittest.skipUnless(os.name == "posix", "symlink semantics require POSIX")
     def test_input_redirection_is_refused(self):
         with tempfile.TemporaryDirectory() as directory:
